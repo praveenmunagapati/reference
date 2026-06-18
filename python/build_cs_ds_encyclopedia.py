@@ -1,0 +1,4495 @@
+#!/usr/bin/env python3
+"""
+build_cs_ds_encyclopedia.py
+===========================
+Principal Software Architect's Builder Script.
+
+When executed, this script dynamically constructs and saves a massive,
+fully runnable file named `PYTHON_CS_DS_ENCYCLOPEDIA.py`.
+
+The generated file is an exhaustive, unabridged textbook spanning:
+  - Absolute beginner Python
+  - Advanced Software Engineering (Design Patterns, DSA)
+  - Data Science (NumPy, Pandas, Sklearn)
+
+Usage:
+    python build_cs_ds_encyclopedia.py
+
+Author: Auto-generated Curriculum Builder
+"""
+
+import textwrap
+import os
+import sys
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+OUTPUT_FILENAME = "PYTHON_CS_DS_ENCYCLOPEDIA.py"
+LINE_COUNTER = 0
+
+
+def emit(block: str) -> str:
+    """Dedent a block, strip leading/trailing blank lines, and return it
+    with a trailing newline.  Also updates the global line counter."""
+    global LINE_COUNTER
+    cleaned = textwrap.dedent(block).strip("\n") + "\n\n"
+    LINE_COUNTER += cleaned.count("\n")
+    return cleaned
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 1 — Python Core, Internals & OOP                                ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_1_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 1: PYTHON CORE, INTERNALS & OOP                             ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    # This phase covers the bedrock of the Python language: types, memory
+    # model, control flow, OOP, decorators, and context managers.
+''')
+
+PHASE_1A_CORE_TYPES = emit(r'''
+    # ========================================================================
+    # 1.1  Core Types, Mutability vs Immutability, Memory Addresses
+    # ========================================================================
+
+    def core_types_demo():
+        """Demonstrate Python's core types, mutability semantics, and the
+        ``id()`` function which reveals CPython's memory address for an object.
+
+        Key Concepts
+        -------------
+        * **Immutable types**: int, float, str, tuple, frozenset, bytes.
+          Reassignment creates a *new* object; the old one is garbage-collected.
+        * **Mutable types**: list, dict, set, bytearray.
+          In-place mutation does NOT change the object's ``id()``.
+        * CPython interns small integers (−5 … 256) and short strings, so
+          ``id()`` may be shared between variables holding the same value.
+
+        Big-O Note
+        ----------
+        All demonstrations here are O(1) — constant-time attribute lookups.
+        """
+
+        # --- Integers (immutable) ---
+        a = 42
+        print(f"a = {a}, id(a) = {id(a)}, type = {type(a).__name__}")
+
+        b = a                       # b points to the SAME int object
+        print(f"b = {b}, id(b) = {id(b)}, a is b → {a is b}")
+
+        a = a + 1                   # creates a NEW int object (43)
+        print(f"After a += 1:  id(a) = {id(a)}, id(b) = {id(b)}, a is b → {a is b}")
+        # b still points to 42; a now points to 43 — demonstrates immutability.
+
+        # --- Strings (immutable, interned for short literals) ---
+        s1 = "hello"
+        s2 = "hello"
+        print(f"\ns1 = {s1!r}, id = {id(s1)}")
+        print(f"s2 = {s2!r}, id = {id(s2)}")
+        print(f"s1 is s2 → {s1 is s2}")  # True for interned short strings
+        # WARNING: Do NOT rely on interning for correctness — use == for value
+        # comparison and `is` only for identity (e.g., `is None`).
+
+        # --- Floats (immutable, NOT interned) ---
+        f1 = 3.14
+        f2 = 3.14
+        print(f"\nfloat id comparison: id(f1)={id(f1)}, id(f2)={id(f2)}")
+        print(f"f1 is f2 → {f1 is f2}")  # Usually False — floats aren't interned
+
+        # --- Tuples (immutable container, but elements may be mutable) ---
+        t = (1, 2, [3, 4])
+        print(f"\ntuple t = {t}, id(t) = {id(t)}")
+        t[2].append(5)             # The LIST inside is mutable
+        print(f"After mutating inner list: t = {t}, id(t) = {id(t)}")
+        # The tuple's id stays the same because we didn't replace the tuple —
+        # we mutated an object the tuple *refers to*.
+
+        # --- Lists (mutable) ---
+        lst = [10, 20, 30]
+        print(f"\nlst = {lst}, id = {id(lst)}")
+        lst.append(40)             # in-place mutation
+        print(f"After append: lst = {lst}, id = {id(lst)}")  # same id!
+
+        # --- Dicts (mutable, insertion-ordered since Python 3.7+) ---
+        d = {"x": 1, "y": 2}
+        original_id = id(d)
+        d["z"] = 3                 # in-place mutation
+        print(f"\ndict d = {d}, id unchanged: {id(d) == original_id}")
+
+        # --- Sets (mutable, unordered, unique elements) ---
+        s = {1, 2, 3}
+        s.add(4)
+        print(f"\nset s = {s}, type = {type(s).__name__}")
+
+        # --- Frozensets (immutable set — can be used as dict keys / set elements) ---
+        fs = frozenset([1, 2, 3])
+        print(f"frozenset fs = {fs}, type = {type(fs).__name__}")
+
+        # --- Bytes vs Bytearray ---
+        raw = b"\x00\x01\x02"         # immutable
+        ba = bytearray(raw)           # mutable copy
+        ba[0] = 0xFF
+        print(f"\nbytes = {raw}, bytearray after mutation = {ba}")
+
+        # --- Type hierarchy summary ---
+        print("\n--- Type Hierarchy Summary ---")
+        for obj in (42, 3.14, True, "hi", b"hi", (1,), [1], {1}, frozenset([1]), {"a": 1}):
+            print(f"  {str(obj):20s}  type={type(obj).__name__:12s}  "
+                  f"mutable={'Yes' if isinstance(obj, (list, dict, set, bytearray)) else 'No'}")
+
+    core_types_demo()
+''')
+
+PHASE_1B_CONTROL_FLOW = emit(r'''
+    # ========================================================================
+    # 1.2  Control Flow, Comprehensions, Iterators, Generators
+    # ========================================================================
+
+    def control_flow_demo():
+        """Control flow constructs and Pythonic iteration patterns.
+
+        Covers
+        ------
+        * if/elif/else, ternary expressions, walrus operator (:=)
+        * for/while loops, break/continue/else-on-loop
+        * List, dict, set, and nested comprehensions
+        * Iterator protocol (__iter__ / __next__)
+        * Generator functions (yield) and generator expressions
+        * itertools highlights
+
+        Big-O Notes
+        -----------
+        * Comprehensions: O(n) — one pass over the iterable.
+        * Generators: O(1) memory per yielded item (lazy evaluation).
+        """
+        import itertools
+
+        # --- Ternary expression ---
+        age = 20
+        status = "adult" if age >= 18 else "minor"
+        print(f"Age {age} → {status}")
+
+        # --- Walrus operator (:=) — Python 3.8+ ---
+        # Assigns inside an expression, reducing redundant computation.
+        data = [1, 5, 12, 3, 18, 7]
+        large = [x for x in data if (sq := x * x) > 50]
+        print(f"Elements whose square > 50: {large}")
+
+        # --- for/else — the else block runs if the loop was NOT broken ---
+        primes = [2, 3, 5, 7, 11]
+        target = 6
+        for p in primes:
+            if p == target:
+                print(f"Found {target} in primes")
+                break
+        else:
+            # This runs because we never hit `break`
+            print(f"{target} is NOT in the primes list (for/else executed)")
+
+        # --- List comprehension ---
+        squares = [x ** 2 for x in range(10)]
+        print(f"Squares: {squares}")
+
+        # --- Dict comprehension ---
+        word = "abracadabra"
+        freq = {ch: word.count(ch) for ch in set(word)}
+        print(f"Letter frequencies: {freq}")
+
+        # --- Set comprehension ---
+        evens = {x for x in range(20) if x % 2 == 0}
+        print(f"Even numbers: {evens}")
+
+        # --- Nested comprehension (matrix transpose) ---
+        matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        transposed = [[row[i] for row in matrix] for i in range(len(matrix[0]))]
+        print(f"Transposed matrix: {transposed}")
+
+        # --- Iterator Protocol ---
+        class Countdown:
+            """A custom iterator that counts down from `start` to 1.
+            Implements __iter__ (returns self) and __next__ (yields values)."""
+            def __init__(self, start: int):
+                self.current = start
+
+            def __iter__(self):
+                return self          # An iterator returns itself
+
+            def __next__(self):
+                if self.current <= 0:
+                    raise StopIteration   # Signal exhaustion
+                val = self.current
+                self.current -= 1
+                return val
+
+        print(f"Countdown: {list(Countdown(5))}")
+
+        # --- Generator Function (yield) ---
+        def fibonacci(limit: int):
+            """Yield Fibonacci numbers up to `limit`.
+
+            Memory: O(1) — only two variables are held at any time.
+            Time:   O(limit) — one iteration per number.
+            """
+            a, b = 0, 1
+            while a < limit:
+                yield a             # Suspend here, resume on next()
+                a, b = b, a + b
+
+        print(f"Fibonacci < 100: {list(fibonacci(100))}")
+
+        # --- Generator Expression (lazy, memory-efficient) ---
+        # Unlike a list comprehension [x**2 for ...], this uses () and is lazy.
+        gen_expr = (x ** 2 for x in range(1_000_000))
+        first_five = [next(gen_expr) for _ in range(5)]
+        print(f"First 5 from generator expression: {first_five}")
+
+        # --- itertools highlights ---
+        # chain: flatten multiple iterables
+        print(f"chain: {list(itertools.chain([1, 2], [3, 4], [5]))}")
+        # combinations
+        print(f"C(4,2): {list(itertools.combinations(range(4), 2))}")
+        # product (Cartesian product)
+        print(f"product: {list(itertools.product('AB', '12'))}")
+        # groupby (data must be sorted by key first)
+        data_sorted = sorted(["apple", "avocado", "banana", "blueberry"], key=lambda w: w[0])
+        for key, group in itertools.groupby(data_sorted, key=lambda w: w[0]):
+            print(f"  groupby '{key}': {list(group)}")
+
+    control_flow_demo()
+''')
+
+PHASE_1C_OOP = emit(r'''
+    # ========================================================================
+    # 1.3  Advanced OOP: Inheritance, MRO, Properties, Dunder Methods, Dataclasses
+    # ========================================================================
+
+    def advanced_oop_demo():
+        """Deep-dive into Python's object-oriented programming model.
+
+        Covers
+        ------
+        * Single & multiple inheritance
+        * Method Resolution Order (MRO) — C3 linearization
+        * ``@property`` descriptor (getter/setter/deleter)
+        * Exhaustive dunder/magic methods with real implementations
+        * ``dataclasses`` module for boilerplate-free classes
+        """
+        from dataclasses import dataclass, field
+        from functools import total_ordering
+        import math
+
+        # -------------------------------------------------------------------
+        # 1.3.1  Inheritance & MRO
+        # -------------------------------------------------------------------
+        class Animal:
+            """Base class demonstrating the template for inheritance."""
+            def __init__(self, name: str, legs: int = 4):
+                self.name = name
+                self.legs = legs
+
+            def speak(self) -> str:
+                return f"{self.name} makes a generic sound"
+
+            def __repr__(self) -> str:
+                return f"{type(self).__name__}(name={self.name!r}, legs={self.legs})"
+
+        class Mammal(Animal):
+            """Intermediate class — adds warm-blooded trait."""
+            warm_blooded = True
+
+        class Pet(Animal):
+            """Mixin class — adds domestication trait."""
+            domesticated = True
+
+        class Dog(Mammal, Pet):
+            """Diamond inheritance: Dog → Mammal → Pet → Animal → object.
+            Python uses C3 linearization to resolve method calls unambiguously.
+            """
+            def speak(self) -> str:
+                return f"{self.name} says Woof!"
+
+        rex = Dog("Rex")
+        print(rex.speak())
+        print(f"MRO: {[cls.__name__ for cls in Dog.__mro__]}")
+        # Output: ['Dog', 'Mammal', 'Pet', 'Animal', 'object']
+        # C3 ensures each class appears once, children before parents,
+        # and the order respects the inheritance list (Mammal before Pet).
+
+        # -------------------------------------------------------------------
+        # 1.3.2  @property — Managed Attributes
+        # -------------------------------------------------------------------
+        class Circle:
+            """A circle with a radius property.
+
+            Using @property lets us enforce invariants (radius > 0) and
+            compute derived attributes (area, circumference) lazily.
+            """
+            def __init__(self, radius: float):
+                self.radius = radius   # Calls the setter
+
+            @property
+            def radius(self) -> float:
+                """Getter: returns the private _radius."""
+                return self._radius
+
+            @radius.setter
+            def radius(self, value: float):
+                """Setter: validates before storing."""
+                if value <= 0:
+                    raise ValueError(f"Radius must be positive, got {value}")
+                self._radius = value
+
+            @radius.deleter
+            def radius(self):
+                """Deleter: resets radius to a default."""
+                print("Resetting radius to 1.0")
+                self._radius = 1.0
+
+            @property
+            def area(self) -> float:
+                """Computed property — no stored state."""
+                return math.pi * self._radius ** 2
+
+            @property
+            def circumference(self) -> float:
+                return 2 * math.pi * self._radius
+
+            def __repr__(self):
+                return f"Circle(radius={self._radius:.2f})"
+
+        c = Circle(5)
+        print(f"{c} → area={c.area:.4f}, circumference={c.circumference:.4f}")
+        c.radius = 10           # Uses the setter
+        print(f"After resize: {c}")
+        del c.radius            # Uses the deleter
+        print(f"After delete: {c}")
+
+        # -------------------------------------------------------------------
+        # 1.3.3  Exhaustive Dunder / Magic Methods
+        # -------------------------------------------------------------------
+        @total_ordering          # Fills in __gt__, __ge__, __le__ from __eq__ and __lt__
+        class Vector2D:
+            """A 2D vector demonstrating an exhaustive set of magic methods.
+
+            Dunder methods (double-underscore methods) let you define how objects
+            interact with Python's built-in operators and protocols.
+            """
+
+            def __init__(self, x: float, y: float):
+                """Constructor — called when creating a new instance."""
+                self.x = x
+                self.y = y
+
+            # --- Representation ---
+            def __repr__(self) -> str:
+                """Unambiguous string for developers (used by repr())."""
+                return f"Vector2D({self.x}, {self.y})"
+
+            def __str__(self) -> str:
+                """User-friendly string (used by print() / str())."""
+                return f"({self.x}, {self.y})"
+
+            def __format__(self, spec: str) -> str:
+                """Custom formatting: f'{v:.2f}' formats both components."""
+                if spec:
+                    return f"({self.x:{spec}}, {self.y:{spec}})"
+                return str(self)
+
+            # --- Arithmetic operators ---
+            def __add__(self, other: "Vector2D") -> "Vector2D":
+                """v1 + v2"""
+                return Vector2D(self.x + other.x, self.y + other.y)
+
+            def __sub__(self, other: "Vector2D") -> "Vector2D":
+                """v1 - v2"""
+                return Vector2D(self.x - other.x, self.y - other.y)
+
+            def __mul__(self, scalar: float) -> "Vector2D":
+                """v * scalar (scalar multiplication)."""
+                return Vector2D(self.x * scalar, self.y * scalar)
+
+            def __rmul__(self, scalar: float) -> "Vector2D":
+                """scalar * v (reflected multiplication)."""
+                return self.__mul__(scalar)
+
+            def __truediv__(self, scalar: float) -> "Vector2D":
+                """v / scalar"""
+                return Vector2D(self.x / scalar, self.y / scalar)
+
+            def __neg__(self) -> "Vector2D":
+                """-v (unary negation)."""
+                return Vector2D(-self.x, -self.y)
+
+            def __abs__(self) -> float:
+                """abs(v) → Euclidean magnitude."""
+                return math.hypot(self.x, self.y)
+
+            # --- Comparison (total_ordering fills the rest) ---
+            def __eq__(self, other: object) -> bool:
+                if not isinstance(other, Vector2D):
+                    return NotImplemented
+                return (self.x, self.y) == (other.x, other.y)
+
+            def __lt__(self, other: "Vector2D") -> bool:
+                """Compare by magnitude — lets us sort vectors."""
+                return abs(self) < abs(other)
+
+            # --- Hashing (required if __eq__ is defined and we want set/dict usage) ---
+            def __hash__(self) -> int:
+                return hash((self.x, self.y))
+
+            # --- Container-like access ---
+            def __len__(self) -> int:
+                """len(v) → always 2 for a 2D vector."""
+                return 2
+
+            def __getitem__(self, index: int) -> float:
+                """v[0] → x, v[1] → y.  Enables unpacking: x, y = v."""
+                return (self.x, self.y)[index]
+
+            def __iter__(self):
+                """Makes Vector2D iterable: for coord in v: ..."""
+                yield self.x
+                yield self.y
+
+            def __contains__(self, value: float) -> bool:
+                """value in v"""
+                return value in (self.x, self.y)
+
+            # --- Boolean / truthiness ---
+            def __bool__(self) -> bool:
+                """bool(v) → False if zero vector."""
+                return self.x != 0 or self.y != 0
+
+            # --- Callable (dot product as a call) ---
+            def __call__(self, other: "Vector2D") -> float:
+                """v1(v2) → dot product.  Unconventional but demonstrates __call__."""
+                return self.x * other.x + self.y * other.y
+
+        v1 = Vector2D(3, 4)
+        v2 = Vector2D(1, 2)
+        print(f"\nv1 = {v1!r}")
+        print(f"v1 + v2 = {v1 + v2}")
+        print(f"v1 * 3  = {v1 * 3}")
+        print(f"3 * v1  = {3 * v1}")
+        print(f"|v1|    = {abs(v1)}")
+        print(f"v1 == v2: {v1 == v2}")
+        print(f"v1 > v2:  {v1 > v2}")
+        print(f"v1[0]   = {v1[0]}")
+        print(f"Dot product v1(v2) = {v1(v2)}")
+        print(f"bool(Vector2D(0,0)) = {bool(Vector2D(0, 0))}")
+        print(f"Formatted: {v1:.3f}")
+
+        # -------------------------------------------------------------------
+        # 1.3.4  Dataclasses
+        # -------------------------------------------------------------------
+        @dataclass(order=True, frozen=False)
+        class Student:
+            """Dataclass auto-generates __init__, __repr__, __eq__, and
+            comparison methods (because order=True).
+
+            Real-world use case: DTOs, configuration objects, lightweight
+            records that would otherwise need tedious boilerplate.
+            """
+            sort_index: float = field(init=False, repr=False)
+            name: str
+            gpa: float
+            courses: list = field(default_factory=list)  # mutable default done RIGHT
+
+            def __post_init__(self):
+                """Called after __init__; we set sort_index so ordering uses GPA."""
+                self.sort_index = self.gpa
+
+        s1 = Student("Alice", 3.9, ["CS101", "MATH201"])
+        s2 = Student("Bob", 3.7)
+        print(f"\n{s1}")
+        print(f"{s2}")
+        print(f"s1 > s2 (by GPA): {s1 > s2}")
+
+    advanced_oop_demo()
+''')
+
+PHASE_1D_DECORATORS_CONTEXT = emit(r'''
+    # ========================================================================
+    # 1.4  Decorators & Context Managers
+    # ========================================================================
+
+    def decorators_and_context_managers_demo():
+        """Decorators and context managers — two of Python's most powerful
+        metaprogramming tools.
+
+        Decorators
+        ----------
+        A decorator is a callable that takes a function (or class) and returns
+        a modified version.  They follow the pattern:
+            @decorator
+            def func(): ...
+        which is syntactic sugar for:  func = decorator(func)
+
+        Context Managers
+        ----------------
+        Objects implementing __enter__ / __exit__ (or using contextlib)
+        that guarantee cleanup code runs, even if exceptions occur.
+        """
+        import functools
+        import time
+        from contextlib import contextmanager
+
+        # -------------------------------------------------------------------
+        # 1.4.1  Simple Decorator
+        # -------------------------------------------------------------------
+        def timer(func):
+            """Measure execution time of the decorated function.
+
+            Uses functools.wraps to preserve the original function's
+            __name__, __doc__, and __module__ — essential for debugging
+            and introspection.
+            """
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                start = time.perf_counter()
+                result = func(*args, **kwargs)
+                elapsed = time.perf_counter() - start
+                print(f"  ⏱  {func.__name__} took {elapsed:.6f}s")
+                return result
+            return wrapper
+
+        @timer
+        def slow_sum(n: int) -> int:
+            """Sum integers from 0 to n (intentionally using a loop)."""
+            return sum(range(n))
+
+        print(f"slow_sum(1_000_000) = {slow_sum(1_000_000)}")
+        print(f"Preserved name: {slow_sum.__name__}")    # 'slow_sum', not 'wrapper'
+        print(f"Preserved doc:  {slow_sum.__doc__}")
+
+        # -------------------------------------------------------------------
+        # 1.4.2  Decorator WITH Arguments
+        # -------------------------------------------------------------------
+        def repeat(n: int = 2):
+            """Decorator factory: returns a decorator that calls the function
+            `n` times.
+
+            Architecture: Three-level nesting is required:
+              repeat(n) → decorator(func) → wrapper(*args)
+            """
+            def decorator(func):
+                @functools.wraps(func)
+                def wrapper(*args, **kwargs):
+                    results = []
+                    for _ in range(n):
+                        results.append(func(*args, **kwargs))
+                    return results
+                return wrapper
+            return decorator
+
+        @repeat(n=3)
+        def greet(name: str) -> str:
+            return f"Hello, {name}!"
+
+        print(f"\nrepeat(3) greet: {greet('World')}")
+
+        # -------------------------------------------------------------------
+        # 1.4.3  Class-based Decorator (stateful)
+        # -------------------------------------------------------------------
+        class CountCalls:
+            """A class-based decorator that counts how many times a function
+            has been called.
+
+            Why class-based?  When you need to maintain state (like a counter)
+            across calls, a class with __call__ is cleaner than a closure.
+            """
+            def __init__(self, func):
+                functools.update_wrapper(self, func)
+                self.func = func
+                self.call_count = 0
+
+            def __call__(self, *args, **kwargs):
+                self.call_count += 1
+                print(f"  Call #{self.call_count} to {self.func.__name__}")
+                return self.func(*args, **kwargs)
+
+        @CountCalls
+        def say_hi():
+            return "Hi!"
+
+        say_hi()
+        say_hi()
+        say_hi()
+        print(f"Total calls to say_hi: {say_hi.call_count}")
+
+        # -------------------------------------------------------------------
+        # 1.4.4  Context Manager — Class-based
+        # -------------------------------------------------------------------
+        class ManagedFile:
+            """Context manager for file operations, demonstrating the protocol.
+
+            __enter__ is called at the start of the `with` block.
+            __exit__  is called at the end, even if an exception occurred.
+
+            Parameters of __exit__:
+              exc_type  — exception class (or None)
+              exc_val   — exception instance (or None)
+              exc_tb    — traceback object (or None)
+            Returning True from __exit__ suppresses the exception.
+            """
+            def __init__(self, filename: str, mode: str = "w"):
+                self.filename = filename
+                self.mode = mode
+                self.file = None
+
+            def __enter__(self):
+                print(f"  Opening {self.filename!r} in mode {self.mode!r}")
+                self.file = open(self.filename, self.mode)
+                return self.file
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                if self.file:
+                    self.file.close()
+                    print(f"  Closed {self.filename!r}")
+                if exc_type:
+                    print(f"  Exception caught: {exc_type.__name__}: {exc_val}")
+                return False    # Do NOT suppress exceptions
+
+        # We won't actually write a file in this demo; just show the protocol.
+        print("\nContext Manager (class-based):")
+        import io
+        # Using StringIO to avoid actual file I/O in the demo
+        print("  (Demonstrated protocol — see ManagedFile class above)")
+
+        # -------------------------------------------------------------------
+        # 1.4.5  Context Manager — Generator-based (contextlib)
+        # -------------------------------------------------------------------
+        @contextmanager
+        def timer_context(label: str):
+            """A lightweight context manager using @contextmanager.
+
+            Everything before `yield` is __enter__.
+            Everything after `yield` is __exit__.
+            The yielded value is bound to the `as` variable.
+            """
+            start = time.perf_counter()
+            yield  # control passes to the `with` block here
+            elapsed = time.perf_counter() - start
+            print(f"  ⏱  [{label}] block took {elapsed:.6f}s")
+
+        print("\nContext Manager (generator-based):")
+        with timer_context("list comprehension"):
+            _ = [x ** 2 for x in range(100_000)]
+
+    decorators_and_context_managers_demo()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 2 — Data Structures (Pure CS)                                    ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_2_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 2: DATA STRUCTURES (PURE COMPUTER SCIENCE)                   ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    # Pure implementations of fundamental data structures.
+    # Every method includes Big-O time and space analysis.
+''')
+
+PHASE_2A_LINKED_LISTS = emit(r'''
+    # ========================================================================
+    # 2.1  Linked Lists — Singly & Doubly Linked Lists
+    # ========================================================================
+
+    class SinglyLinkedListNode:
+        """A single node in a singly linked list.
+
+        Each node stores a value and a pointer to the next node.
+        Memory: O(1) per node.
+        """
+        __slots__ = ("value", "next")   # __slots__ saves memory vs __dict__
+
+        def __init__(self, value, next_node=None):
+            self.value = value
+            self.next = next_node
+
+
+    class SinglyLinkedList:
+        """Singly Linked List — a chain of nodes where each node points forward.
+
+        Real-world use case: Implementing stacks, undo buffers, and simple
+        task queues where insertion at the head is the primary operation.
+
+        Complexity Summary
+        ------------------
+        | Operation         | Time   | Space |
+        |-------------------|--------|-------|
+        | Insert at head    | O(1)   | O(1)  |
+        | Insert at tail    | O(n)   | O(1)  |
+        | Delete by value   | O(n)   | O(1)  |
+        | Search            | O(n)   | O(1)  |
+        | Traversal         | O(n)   | O(1)  |
+        """
+
+        def __init__(self):
+            self.head = None
+            self._size = 0
+
+        def __len__(self) -> int:
+            return self._size
+
+        def __repr__(self) -> str:
+            nodes = []
+            current = self.head
+            while current:
+                nodes.append(str(current.value))
+                current = current.next
+            return " → ".join(nodes) + " → None"
+
+        def insert_at_head(self, value) -> None:
+            """Insert a new node at the beginning.  O(1) time."""
+            self.head = SinglyLinkedListNode(value, self.head)
+            self._size += 1
+
+        def insert_at_tail(self, value) -> None:
+            """Insert a new node at the end.  O(n) time — must traverse."""
+            new_node = SinglyLinkedListNode(value)
+            if not self.head:
+                self.head = new_node
+            else:
+                current = self.head
+                while current.next:         # Walk to the last node
+                    current = current.next
+                current.next = new_node
+            self._size += 1
+
+        def delete(self, value) -> bool:
+            """Delete the first node with the given value.
+            Returns True if found and deleted, False otherwise.
+            O(n) time — may need to scan the entire list.
+            """
+            if not self.head:
+                return False
+
+            # Special case: deleting the head
+            if self.head.value == value:
+                self.head = self.head.next
+                self._size -= 1
+                return True
+
+            current = self.head
+            while current.next:
+                if current.next.value == value:
+                    current.next = current.next.next  # Bypass the node
+                    self._size -= 1
+                    return True
+                current = current.next
+            return False
+
+        def search(self, value) -> bool:
+            """Check if a value exists in the list.  O(n) time."""
+            current = self.head
+            while current:
+                if current.value == value:
+                    return True
+                current = current.next
+            return False
+
+        def reverse(self) -> None:
+            """Reverse the list in-place.  O(n) time, O(1) space.
+
+            Algorithm: Three-pointer technique (prev, current, next_node).
+            """
+            prev = None
+            current = self.head
+            while current:
+                next_node = current.next   # Save next
+                current.next = prev        # Reverse the link
+                prev = current             # Advance prev
+                current = next_node        # Advance current
+            self.head = prev
+
+    # --- Demo ---
+    print("=" * 60)
+    print("SINGLY LINKED LIST DEMO")
+    print("=" * 60)
+    sll = SinglyLinkedList()
+    for v in [10, 20, 30, 40]:
+        sll.insert_at_tail(v)
+    print(f"Original:  {sll}")
+    sll.insert_at_head(5)
+    print(f"After insert_at_head(5): {sll}")
+    sll.delete(30)
+    print(f"After delete(30):        {sll}")
+    sll.reverse()
+    print(f"After reverse():         {sll}")
+    print(f"Search 20: {sll.search(20)}, Search 99: {sll.search(99)}")
+
+
+    # --- Doubly Linked List ---
+
+    class DoublyLinkedListNode:
+        """Node for a doubly linked list — stores prev AND next pointers."""
+        __slots__ = ("value", "prev", "next")
+
+        def __init__(self, value, prev_node=None, next_node=None):
+            self.value = value
+            self.prev = prev_node
+            self.next = next_node
+
+
+    class DoublyLinkedList:
+        """Doubly Linked List — nodes have both forward and backward pointers.
+
+        Advantage over singly linked: O(1) deletion when you have a reference
+        to the node (no need to find the predecessor).
+
+        Real-world use case: LRU caches (used by functools.lru_cache),
+        browser history (back/forward), and text editor undo/redo.
+
+        Complexity Summary
+        ------------------
+        | Operation             | Time | Space |
+        |-----------------------|------|-------|
+        | Insert at head/tail   | O(1) | O(1)  |
+        | Delete given node ref | O(1) | O(1)  |
+        | Delete by value       | O(n) | O(1)  |
+        | Traverse (fwd / bkwd) | O(n) | O(1)  |
+        """
+
+        def __init__(self):
+            # Sentinel nodes simplify edge cases (no None checks needed)
+            self._sentinel_head = DoublyLinkedListNode(None)
+            self._sentinel_tail = DoublyLinkedListNode(None)
+            self._sentinel_head.next = self._sentinel_tail
+            self._sentinel_tail.prev = self._sentinel_head
+            self._size = 0
+
+        def __len__(self) -> int:
+            return self._size
+
+        def __repr__(self) -> str:
+            nodes = []
+            current = self._sentinel_head.next
+            while current is not self._sentinel_tail:
+                nodes.append(str(current.value))
+                current = current.next
+            return " ⇄ ".join(nodes)
+
+        def _insert_between(self, value, predecessor, successor) -> DoublyLinkedListNode:
+            """Internal helper: insert a new node between two existing nodes.
+            O(1) time.
+            """
+            new_node = DoublyLinkedListNode(value, predecessor, successor)
+            predecessor.next = new_node
+            successor.prev = new_node
+            self._size += 1
+            return new_node
+
+        def insert_at_head(self, value) -> DoublyLinkedListNode:
+            """O(1) insertion at the front."""
+            return self._insert_between(value, self._sentinel_head,
+                                        self._sentinel_head.next)
+
+        def insert_at_tail(self, value) -> DoublyLinkedListNode:
+            """O(1) insertion at the back."""
+            return self._insert_between(value, self._sentinel_tail.prev,
+                                        self._sentinel_tail)
+
+        def delete_node(self, node: DoublyLinkedListNode) -> None:
+            """Remove a node given a direct reference.  O(1) time."""
+            node.prev.next = node.next
+            node.next.prev = node.prev
+            self._size -= 1
+
+        def delete_by_value(self, value) -> bool:
+            """Find and remove the first occurrence of value.  O(n) time."""
+            current = self._sentinel_head.next
+            while current is not self._sentinel_tail:
+                if current.value == value:
+                    self.delete_node(current)
+                    return True
+                current = current.next
+            return False
+
+    # --- Demo ---
+    print(f"\n{'=' * 60}")
+    print("DOUBLY LINKED LIST DEMO")
+    print("=" * 60)
+    dll = DoublyLinkedList()
+    dll.insert_at_tail(10)
+    dll.insert_at_tail(20)
+    node_30 = dll.insert_at_tail(30)
+    dll.insert_at_tail(40)
+    print(f"Original: {dll}")
+    dll.delete_node(node_30)
+    print(f"After deleting node 30: {dll}")
+    dll.insert_at_head(5)
+    print(f"After insert_at_head(5): {dll}")
+''')
+
+PHASE_2B_TREES = emit(r'''
+    # ========================================================================
+    # 2.2  Trees — BST, AVL Tree, Trie
+    # ========================================================================
+
+    # -------------------------------------------------------------------
+    # 2.2.1  Binary Search Tree (BST)
+    # -------------------------------------------------------------------
+
+    class BSTNode:
+        """Node for a Binary Search Tree."""
+        __slots__ = ("key", "left", "right")
+
+        def __init__(self, key):
+            self.key = key
+            self.left = None
+            self.right = None
+
+
+    class BinarySearchTree:
+        """Binary Search Tree (BST).
+
+        Invariant: For every node, all keys in the left subtree are LESS than
+        the node's key, and all keys in the right subtree are GREATER.
+
+        Complexity (average case — balanced tree)
+        ------------------------------------------
+        | Operation | Time     | Space  |
+        |-----------|----------|--------|
+        | Insert    | O(log n) | O(1)   |
+        | Search    | O(log n) | O(1)   |
+        | Delete    | O(log n) | O(1)   |
+        | In-order  | O(n)     | O(h)*  |
+
+        * h = height of tree; O(log n) if balanced, O(n) if degenerate.
+
+        Worst case (degenerate/linear tree): All operations degrade to O(n).
+        This is why self-balancing trees (AVL, Red-Black) exist.
+        """
+
+        def __init__(self):
+            self.root = None
+
+        def insert(self, key) -> None:
+            """Insert a key into the BST.  O(log n) average."""
+            if not self.root:
+                self.root = BSTNode(key)
+                return
+            current = self.root
+            while True:
+                if key < current.key:
+                    if current.left is None:
+                        current.left = BSTNode(key)
+                        return
+                    current = current.left
+                elif key > current.key:
+                    if current.right is None:
+                        current.right = BSTNode(key)
+                        return
+                    current = current.right
+                else:
+                    return  # Duplicate keys are not inserted
+
+        def search(self, key) -> bool:
+            """Search for a key.  O(log n) average."""
+            current = self.root
+            while current:
+                if key == current.key:
+                    return True
+                elif key < current.key:
+                    current = current.left
+                else:
+                    current = current.right
+            return False
+
+        def inorder(self) -> list:
+            """In-order traversal → sorted sequence.  O(n) time, O(h) stack."""
+            result = []
+            def _walk(node):
+                if node:
+                    _walk(node.left)
+                    result.append(node.key)
+                    _walk(node.right)
+            _walk(self.root)
+            return result
+
+        def _find_min(self, node: BSTNode) -> BSTNode:
+            """Find the minimum node in a subtree (leftmost node)."""
+            while node.left:
+                node = node.left
+            return node
+
+        def delete(self, key) -> None:
+            """Delete a key from the BST.  O(log n) average.
+
+            Three cases:
+            1. Node is a leaf → simply remove it.
+            2. Node has one child → replace node with its child.
+            3. Node has two children → replace with in-order successor
+               (smallest node in right subtree), then delete that successor.
+            """
+            def _delete(node, key):
+                if not node:
+                    return node
+                if key < node.key:
+                    node.left = _delete(node.left, key)
+                elif key > node.key:
+                    node.right = _delete(node.right, key)
+                else:
+                    # Found the node to delete
+                    if not node.left:       # Case 1 or 2 (no left child)
+                        return node.right
+                    if not node.right:      # Case 2 (no right child)
+                        return node.left
+                    # Case 3: two children
+                    successor = self._find_min(node.right)
+                    node.key = successor.key
+                    node.right = _delete(node.right, successor.key)
+                return node
+
+            self.root = _delete(self.root, key)
+
+    # --- BST Demo ---
+    print(f"\n{'=' * 60}")
+    print("BINARY SEARCH TREE DEMO")
+    print("=" * 60)
+    bst = BinarySearchTree()
+    for val in [50, 30, 70, 20, 40, 60, 80]:
+        bst.insert(val)
+    print(f"In-order: {bst.inorder()}")
+    print(f"Search 40: {bst.search(40)}")
+    print(f"Search 99: {bst.search(99)}")
+    bst.delete(30)
+    print(f"After deleting 30: {bst.inorder()}")
+
+    # -------------------------------------------------------------------
+    # 2.2.2  AVL Tree (Self-Balancing BST)
+    # -------------------------------------------------------------------
+
+    class AVLNode:
+        """Node for an AVL tree — stores height for balance computation."""
+        __slots__ = ("key", "left", "right", "height")
+
+        def __init__(self, key):
+            self.key = key
+            self.left = None
+            self.right = None
+            self.height = 1    # New nodes are leaves with height 1
+
+
+    class AVLTree:
+        """AVL Tree — a self-balancing BST invented by Adelson-Velsky & Landis.
+
+        The AVL invariant: For every node, the heights of its left and right
+        subtrees differ by at most 1 (|balance_factor| ≤ 1).
+
+        After each insertion/deletion, we check balance factors and perform
+        rotations to restore the invariant.
+
+        Complexity (guaranteed)
+        -----------------------
+        | Operation | Time     | Space |
+        |-----------|----------|-------|
+        | Insert    | O(log n) | O(1)  |
+        | Search    | O(log n) | O(1)  |
+        | Delete    | O(log n) | O(1)  |
+
+        Rotations
+        ---------
+        * Left Rotation:  Fixes Right-Right (RR) imbalance.
+        * Right Rotation: Fixes Left-Left (LL) imbalance.
+        * Left-Right (LR): Left rotate child, then right rotate node.
+        * Right-Left (RL): Right rotate child, then left rotate node.
+        """
+
+        def __init__(self):
+            self.root = None
+
+        def _height(self, node: AVLNode) -> int:
+            return node.height if node else 0
+
+        def _balance_factor(self, node: AVLNode) -> int:
+            """BF = height(left) - height(right).
+            BF > 1  → left-heavy (need right rotation or LR).
+            BF < -1 → right-heavy (need left rotation or RL).
+            """
+            return self._height(node.left) - self._height(node.right) if node else 0
+
+        def _update_height(self, node: AVLNode) -> None:
+            node.height = 1 + max(self._height(node.left), self._height(node.right))
+
+        def _right_rotate(self, z: AVLNode) -> AVLNode:
+            """Right rotation around node z.
+
+                  z                y
+                 / \\             / \\
+                y   T4   →     x   z
+               / \\               / \\
+              x   T3            T3  T4
+
+            O(1) time — just pointer reassignment.
+            """
+            y = z.left
+            t3 = y.right
+            y.right = z
+            z.left = t3
+            self._update_height(z)
+            self._update_height(y)
+            return y   # y is the new root of this subtree
+
+        def _left_rotate(self, z: AVLNode) -> AVLNode:
+            """Left rotation around node z (mirror of right rotation).  O(1)."""
+            y = z.right
+            t2 = y.left
+            y.left = z
+            z.right = t2
+            self._update_height(z)
+            self._update_height(y)
+            return y
+
+        def insert(self, key) -> None:
+            """Public insert method."""
+            self.root = self._insert(self.root, key)
+
+        def _insert(self, node: AVLNode, key) -> AVLNode:
+            """Recursive insert with rebalancing.  O(log n)."""
+            # Standard BST insert
+            if not node:
+                return AVLNode(key)
+            if key < node.key:
+                node.left = self._insert(node.left, key)
+            elif key > node.key:
+                node.right = self._insert(node.right, key)
+            else:
+                return node  # No duplicates
+
+            self._update_height(node)
+            bf = self._balance_factor(node)
+
+            # Left-Left case
+            if bf > 1 and key < node.left.key:
+                return self._right_rotate(node)
+            # Right-Right case
+            if bf < -1 and key > node.right.key:
+                return self._left_rotate(node)
+            # Left-Right case
+            if bf > 1 and key > node.left.key:
+                node.left = self._left_rotate(node.left)
+                return self._right_rotate(node)
+            # Right-Left case
+            if bf < -1 and key < node.right.key:
+                node.right = self._right_rotate(node.right)
+                return self._left_rotate(node)
+
+            return node
+
+        def inorder(self) -> list:
+            result = []
+            def _walk(node):
+                if node:
+                    _walk(node.left)
+                    result.append(node.key)
+                    _walk(node.right)
+            _walk(self.root)
+            return result
+
+    # --- AVL Demo ---
+    print(f"\n{'=' * 60}")
+    print("AVL TREE DEMO")
+    print("=" * 60)
+    avl = AVLTree()
+    # Inserting sorted data would degenerate a normal BST to O(n),
+    # but the AVL tree maintains O(log n) via rotations.
+    for val in [10, 20, 30, 40, 50, 25]:
+        avl.insert(val)
+    print(f"In-order (should be sorted): {avl.inorder()}")
+    print(f"Root key: {avl.root.key} (would be 30 after balancing, not 10)")
+
+    # -------------------------------------------------------------------
+    # 2.2.3  Trie (Prefix Tree)
+    # -------------------------------------------------------------------
+
+    class TrieNode:
+        """Node for a Trie.  Each node holds a dict of children and an
+        end-of-word marker."""
+        __slots__ = ("children", "is_end_of_word")
+
+        def __init__(self):
+            self.children = {}     # char → TrieNode
+            self.is_end_of_word = False
+
+
+    class Trie:
+        """Trie (Prefix Tree) — optimized for prefix-based lookups.
+
+        Real-world use cases: Autocomplete, spell checkers, IP routing tables,
+        and dictionary implementations.
+
+        Complexity (for a word of length m)
+        ------------------------------------
+        | Operation     | Time | Space |
+        |---------------|------|-------|
+        | Insert        | O(m) | O(m)  |
+        | Search        | O(m) | O(1)  |
+        | Starts-with   | O(m) | O(1)  |
+        | Autocomplete  | O(m + k) where k = number of results |
+        """
+
+        def __init__(self):
+            self.root = TrieNode()
+
+        def insert(self, word: str) -> None:
+            """Insert a word into the trie.  O(m) where m = len(word)."""
+            node = self.root
+            for char in word:
+                if char not in node.children:
+                    node.children[char] = TrieNode()
+                node = node.children[char]
+            node.is_end_of_word = True
+
+        def search(self, word: str) -> bool:
+            """Check if an exact word exists.  O(m)."""
+            node = self._find_node(word)
+            return node is not None and node.is_end_of_word
+
+        def starts_with(self, prefix: str) -> bool:
+            """Check if any word starts with the given prefix.  O(m)."""
+            return self._find_node(prefix) is not None
+
+        def autocomplete(self, prefix: str) -> list:
+            """Return all words that start with `prefix`.
+
+            O(m + k) where m = len(prefix), k = number of matching words.
+            """
+            node = self._find_node(prefix)
+            if not node:
+                return []
+            results = []
+            self._dfs_collect(node, list(prefix), results)
+            return results
+
+        def _find_node(self, prefix: str) -> TrieNode:
+            """Navigate to the node representing the last char of prefix."""
+            node = self.root
+            for char in prefix:
+                if char not in node.children:
+                    return None
+                node = node.children[char]
+            return node
+
+        def _dfs_collect(self, node: TrieNode, path: list, results: list) -> None:
+            """DFS to collect all complete words under `node`."""
+            if node.is_end_of_word:
+                results.append("".join(path))
+            for char, child in sorted(node.children.items()):
+                path.append(char)
+                self._dfs_collect(child, path, results)
+                path.pop()   # backtrack
+
+    # --- Trie Demo ---
+    print(f"\n{'=' * 60}")
+    print("TRIE (PREFIX TREE) DEMO")
+    print("=" * 60)
+    trie = Trie()
+    words = ["apple", "app", "application", "apply", "banana", "band", "bandana"]
+    for w in words:
+        trie.insert(w)
+    print(f"Search 'app':       {trie.search('app')}")
+    print(f"Search 'application': {trie.search('application')}")
+    print(f"Search 'apt':       {trie.search('apt')}")
+    print(f"Starts with 'app':  {trie.starts_with('app')}")
+    print(f"Autocomplete 'app': {trie.autocomplete('app')}")
+    print(f"Autocomplete 'ban': {trie.autocomplete('ban')}")
+''')
+
+PHASE_2C_GRAPHS = emit(r'''
+    # ========================================================================
+    # 2.3  Graphs — Adjacency List & Adjacency Matrix
+    # ========================================================================
+
+    class GraphAdjList:
+        """Graph implemented with an adjacency list (dict of sets).
+
+        Why adjacency list?
+        - Memory efficient for SPARSE graphs: O(V + E) space.
+        - Fast iteration over neighbors: O(degree(v)).
+        - Adding an edge: O(1).
+        - Checking if edge exists: O(degree(v)).
+
+        Contrast with adjacency matrix:
+        - Matrix uses O(V²) space regardless of edges.
+        - Edge existence check is O(1) in a matrix.
+        """
+
+        def __init__(self, directed: bool = False):
+            self._adj = {}           # vertex → set of (neighbor, weight)
+            self.directed = directed
+
+        def add_vertex(self, v) -> None:
+            """Add a vertex if it doesn't exist.  O(1)."""
+            if v not in self._adj:
+                self._adj[v] = set()
+
+        def add_edge(self, u, v, weight: float = 1.0) -> None:
+            """Add an edge u→v (and v→u if undirected).  O(1)."""
+            self.add_vertex(u)
+            self.add_vertex(v)
+            self._adj[u].add((v, weight))
+            if not self.directed:
+                self._adj[v].add((u, weight))
+
+        def neighbors(self, v) -> list:
+            """Return neighbors of v.  O(degree(v))."""
+            return [(n, w) for n, w in self._adj.get(v, set())]
+
+        def vertices(self) -> list:
+            return list(self._adj.keys())
+
+        def __repr__(self) -> str:
+            lines = []
+            for v in sorted(self._adj.keys(), key=str):
+                neighbors = sorted(self._adj[v], key=lambda x: str(x[0]))
+                lines.append(f"  {v} → {neighbors}")
+            return "GraphAdjList:\n" + "\n".join(lines)
+
+
+    class GraphAdjMatrix:
+        """Graph implemented with an adjacency matrix (2D list).
+
+        Why adjacency matrix?
+        - O(1) edge existence check: matrix[u][v] != 0.
+        - Simpler for dense graphs and matrix-based algorithms (Floyd-Warshall).
+        - Memory: O(V²) — wasteful for sparse graphs.
+
+        Complexity
+        ----------
+        | Operation        | Adj List     | Adj Matrix |
+        |------------------|--------------|------------|
+        | Space            | O(V + E)     | O(V²)     |
+        | Add edge         | O(1)         | O(1)      |
+        | Check edge       | O(degree(v)) | O(1)      |
+        | List neighbors   | O(degree(v)) | O(V)      |
+        """
+
+        def __init__(self, num_vertices: int):
+            self.n = num_vertices
+            # Initialize V×V matrix with zeros (no edges)
+            self.matrix = [[0.0] * num_vertices for _ in range(num_vertices)]
+
+        def add_edge(self, u: int, v: int, weight: float = 1.0,
+                     directed: bool = False) -> None:
+            """Add edge u→v.  O(1)."""
+            self.matrix[u][v] = weight
+            if not directed:
+                self.matrix[v][u] = weight
+
+        def has_edge(self, u: int, v: int) -> bool:
+            """Check if edge u→v exists.  O(1)."""
+            return self.matrix[u][v] != 0
+
+        def __repr__(self) -> str:
+            rows = []
+            for i, row in enumerate(self.matrix):
+                rows.append(f"  {i}: {row}")
+            return "GraphAdjMatrix:\n" + "\n".join(rows)
+
+    # --- Graph Demo ---
+    print(f"\n{'=' * 60}")
+    print("GRAPH IMPLEMENTATIONS DEMO")
+    print("=" * 60)
+
+    g = GraphAdjList(directed=False)
+    g.add_edge("A", "B", 4)
+    g.add_edge("A", "C", 2)
+    g.add_edge("B", "D", 3)
+    g.add_edge("C", "D", 1)
+    g.add_edge("D", "E", 5)
+    print(g)
+    print(f"Neighbors of A: {g.neighbors('A')}")
+
+    gm = GraphAdjMatrix(4)
+    gm.add_edge(0, 1, 5)
+    gm.add_edge(1, 2, 3)
+    gm.add_edge(2, 3, 1)
+    print(f"\n{gm}")
+    print(f"Edge 0→1 exists: {gm.has_edge(0, 1)}")
+    print(f"Edge 0→3 exists: {gm.has_edge(0, 3)}")
+''')
+
+PHASE_2D_HEAPS = emit(r'''
+    # ========================================================================
+    # 2.4  Heaps — Min-Heap and Max-Heap from Scratch
+    # ========================================================================
+
+    class MinHeap:
+        """Min-Heap — a complete binary tree where each parent ≤ its children.
+
+        The root always holds the MINIMUM element.
+
+        Implementation: Array-based (no explicit tree nodes needed).
+        For a node at index i:
+          - Parent:      (i - 1) // 2
+          - Left child:  2*i + 1
+          - Right child: 2*i + 2
+
+        Real-world use cases: Priority queues, Dijkstra's algorithm,
+        heap sort, finding the k-th smallest element, and median maintenance.
+
+        Complexity
+        ----------
+        | Operation     | Time     | Space |
+        |---------------|----------|-------|
+        | Insert (push) | O(log n) | O(1)  |
+        | Extract min   | O(log n) | O(1)  |
+        | Peek min      | O(1)     | O(1)  |
+        | Heapify array | O(n)     | O(1)  |
+        """
+
+        def __init__(self):
+            self._data = []
+
+        def __len__(self) -> int:
+            return len(self._data)
+
+        def __repr__(self) -> str:
+            return f"MinHeap({self._data})"
+
+        def _parent(self, i: int) -> int:
+            return (i - 1) // 2
+
+        def _left(self, i: int) -> int:
+            return 2 * i + 1
+
+        def _right(self, i: int) -> int:
+            return 2 * i + 2
+
+        def _swap(self, i: int, j: int) -> None:
+            self._data[i], self._data[j] = self._data[j], self._data[i]
+
+        def _sift_up(self, i: int) -> None:
+            """Bubble element at index i UP until the heap property is restored.
+            O(log n) — at most height-of-tree comparisons.
+            """
+            while i > 0:
+                parent = self._parent(i)
+                if self._data[i] < self._data[parent]:
+                    self._swap(i, parent)
+                    i = parent
+                else:
+                    break
+
+        def _sift_down(self, i: int) -> None:
+            """Push element at index i DOWN until the heap property is restored.
+            O(log n).
+            """
+            size = len(self._data)
+            while True:
+                smallest = i
+                left = self._left(i)
+                right = self._right(i)
+
+                if left < size and self._data[left] < self._data[smallest]:
+                    smallest = left
+                if right < size and self._data[right] < self._data[smallest]:
+                    smallest = right
+
+                if smallest != i:
+                    self._swap(i, smallest)
+                    i = smallest
+                else:
+                    break
+
+        def push(self, value) -> None:
+            """Insert a value.  O(log n)."""
+            self._data.append(value)
+            self._sift_up(len(self._data) - 1)
+
+        def pop(self) -> object:
+            """Remove and return the minimum.  O(log n).
+
+            Strategy: Swap root with last element, remove last, sift down root.
+            """
+            if not self._data:
+                raise IndexError("pop from empty heap")
+            self._swap(0, len(self._data) - 1)
+            min_val = self._data.pop()
+            if self._data:
+                self._sift_down(0)
+            return min_val
+
+        def peek(self) -> object:
+            """Return the minimum without removing.  O(1)."""
+            if not self._data:
+                raise IndexError("peek at empty heap")
+            return self._data[0]
+
+        @classmethod
+        def heapify(cls, iterable) -> "MinHeap":
+            """Build a heap from an iterable in O(n) time.
+
+            Why O(n) and not O(n log n)?  Bottom-up sifting: most nodes are
+            near the leaves and require few swaps.  The sum of sift distances
+            is bounded by n.
+            """
+            heap = cls()
+            heap._data = list(iterable)
+            # Start from the last non-leaf node and sift down
+            for i in range(len(heap._data) // 2 - 1, -1, -1):
+                heap._sift_down(i)
+            return heap
+
+
+    class MaxHeap:
+        """Max-Heap — wraps MinHeap by negating values.
+
+        This is a common trick: instead of duplicating all the logic,
+        we negate on insert and negate on extract.  O(1) overhead per operation.
+        """
+
+        def __init__(self):
+            self._heap = MinHeap()
+
+        def __len__(self) -> int:
+            return len(self._heap)
+
+        def push(self, value) -> None:
+            self._heap.push(-value)
+
+        def pop(self):
+            return -self._heap.pop()
+
+        def peek(self):
+            return -self._heap.peek()
+
+    # --- Heap Demo ---
+    print(f"\n{'=' * 60}")
+    print("MIN-HEAP & MAX-HEAP DEMO")
+    print("=" * 60)
+    mh = MinHeap()
+    for v in [15, 10, 20, 8, 25, 5]:
+        mh.push(v)
+    print(f"MinHeap after insertions: {mh}")
+    print(f"Peek min: {mh.peek()}")
+    print(f"Pop sequence: ", end="")
+    while mh:
+        print(mh.pop(), end=" ")
+    print()
+
+    # Heapify
+    h2 = MinHeap.heapify([40, 10, 30, 20, 50])
+    print(f"Heapified: {h2}")
+
+    # MaxHeap
+    maxh = MaxHeap()
+    for v in [15, 10, 20, 8, 25, 5]:
+        maxh.push(v)
+    print(f"MaxHeap pop sequence: ", end="")
+    while maxh:
+        print(maxh.pop(), end=" ")
+    print()
+''')
+
+PHASE_2E_HASHMAP = emit(r'''
+    # ========================================================================
+    # 2.5  Hash Maps — Custom Hash Table with Collision Resolution
+    # ========================================================================
+
+    class HashTableChaining:
+        """Hash Table using SEPARATE CHAINING for collision resolution.
+
+        How it works
+        ------------
+        1. Compute hash(key) % capacity → bucket index.
+        2. Each bucket is a list of (key, value) pairs.
+        3. On collision, we append to the bucket's list.
+        4. On lookup, we scan the bucket linearly.
+
+        Load Factor = n / capacity.  When load factor > 0.75, we resize
+        (double the capacity and rehash all entries).
+
+        Complexity (amortized, with good hash function)
+        -------------------------------------------------
+        | Operation | Average | Worst Case |
+        |-----------|---------|------------|
+        | Insert    | O(1)    | O(n)       |
+        | Lookup    | O(1)    | O(n)       |
+        | Delete    | O(1)    | O(n)       |
+
+        Worst case occurs when all keys hash to the same bucket.
+        """
+
+        def __init__(self, capacity: int = 8):
+            self._capacity = capacity
+            self._size = 0
+            self._buckets = [[] for _ in range(capacity)]
+
+        def __len__(self) -> int:
+            return self._size
+
+        def _hash(self, key) -> int:
+            """Compute bucket index.  Uses Python's built-in hash()."""
+            return hash(key) % self._capacity
+
+        def _resize(self) -> None:
+            """Double capacity and rehash all entries.  O(n) amortized."""
+            old_buckets = self._buckets
+            self._capacity *= 2
+            self._buckets = [[] for _ in range(self._capacity)]
+            self._size = 0
+            for bucket in old_buckets:
+                for key, value in bucket:
+                    self.put(key, value)
+
+        def put(self, key, value) -> None:
+            """Insert or update a key-value pair."""
+            idx = self._hash(key)
+            bucket = self._buckets[idx]
+            # Check if key already exists in this bucket
+            for i, (k, v) in enumerate(bucket):
+                if k == key:
+                    bucket[i] = (key, value)   # Update
+                    return
+            bucket.append((key, value))        # New entry
+            self._size += 1
+            if self._size / self._capacity > 0.75:
+                self._resize()
+
+        def get(self, key, default=None):
+            """Retrieve value by key.  O(1) average."""
+            idx = self._hash(key)
+            for k, v in self._buckets[idx]:
+                if k == key:
+                    return v
+            return default
+
+        def delete(self, key) -> bool:
+            """Remove a key.  O(1) average."""
+            idx = self._hash(key)
+            bucket = self._buckets[idx]
+            for i, (k, v) in enumerate(bucket):
+                if k == key:
+                    bucket.pop(i)
+                    self._size -= 1
+                    return True
+            return False
+
+        def __repr__(self) -> str:
+            items = []
+            for bucket in self._buckets:
+                for k, v in bucket:
+                    items.append(f"{k!r}: {v!r}")
+            return "HashTable({" + ", ".join(items) + "})"
+
+
+    class HashTableOpenAddressing:
+        """Hash Table using OPEN ADDRESSING (Linear Probing) for collision resolution.
+
+        How it works
+        ------------
+        1. Compute hash(key) % capacity → initial index.
+        2. If the slot is occupied by a different key, probe the NEXT slot
+           (index + 1) % capacity, and so on.
+        3. Deleted slots are marked with a sentinel (DELETED) to maintain
+           probe chains.
+
+        Trade-offs vs Chaining
+        ----------------------
+        + Better cache locality (data is in a contiguous array).
+        + No linked list overhead.
+        - Clustering can degrade performance.
+        - Deletion is more complex (need DELETED sentinels).
+        """
+        _EMPTY = object()       # Sentinel for empty slots
+        _DELETED = object()     # Sentinel for deleted slots
+
+        def __init__(self, capacity: int = 8):
+            self._capacity = capacity
+            self._size = 0
+            self._keys = [self._EMPTY] * capacity
+            self._values = [None] * capacity
+
+        def __len__(self) -> int:
+            return self._size
+
+        def _hash(self, key) -> int:
+            return hash(key) % self._capacity
+
+        def _probe(self, key):
+            """Linear probing generator: yields indices to try."""
+            idx = self._hash(key)
+            for _ in range(self._capacity):
+                yield idx
+                idx = (idx + 1) % self._capacity
+
+        def put(self, key, value) -> None:
+            """Insert or update.  Resizes when load factor > 0.6."""
+            if self._size / self._capacity > 0.6:
+                self._resize()
+            first_deleted = None
+            for idx in self._probe(key):
+                if self._keys[idx] is self._EMPTY:
+                    # Use first_deleted slot if we found one, else use this slot
+                    target = first_deleted if first_deleted is not None else idx
+                    self._keys[target] = key
+                    self._values[target] = value
+                    self._size += 1
+                    return
+                elif self._keys[idx] is self._DELETED:
+                    if first_deleted is None:
+                        first_deleted = idx
+                elif self._keys[idx] == key:
+                    self._values[idx] = value   # Update existing
+                    return
+
+        def get(self, key, default=None):
+            """Retrieve value by key.  O(1) average."""
+            for idx in self._probe(key):
+                if self._keys[idx] is self._EMPTY:
+                    return default
+                if self._keys[idx] is not self._DELETED and self._keys[idx] == key:
+                    return self._values[idx]
+            return default
+
+        def delete(self, key) -> bool:
+            """Mark slot as DELETED.  O(1) average."""
+            for idx in self._probe(key):
+                if self._keys[idx] is self._EMPTY:
+                    return False
+                if self._keys[idx] is not self._DELETED and self._keys[idx] == key:
+                    self._keys[idx] = self._DELETED
+                    self._values[idx] = None
+                    self._size -= 1
+                    return True
+            return False
+
+        def _resize(self) -> None:
+            old_keys = self._keys
+            old_values = self._values
+            self._capacity *= 2
+            self._keys = [self._EMPTY] * self._capacity
+            self._values = [None] * self._capacity
+            self._size = 0
+            for k, v in zip(old_keys, old_values):
+                if k is not self._EMPTY and k is not self._DELETED:
+                    self.put(k, v)
+
+    # --- Hash Table Demo ---
+    print(f"\n{'=' * 60}")
+    print("HASH TABLE DEMO")
+    print("=" * 60)
+
+    ht = HashTableChaining()
+    ht.put("name", "Alice")
+    ht.put("age", 30)
+    ht.put("city", "NYC")
+    print(f"Chaining: {ht}")
+    print(f"get('name') = {ht.get('name')}")
+    ht.delete("age")
+    print(f"After deleting 'age': {ht}")
+
+    ht2 = HashTableOpenAddressing()
+    ht2.put("x", 10)
+    ht2.put("y", 20)
+    ht2.put("z", 30)
+    print(f"\nOpen Addressing: get('y') = {ht2.get('y')}")
+    ht2.delete("y")
+    print(f"After deleting 'y': get('y') = {ht2.get('y')}")
+    print(f"get('z') still works: {ht2.get('z')}")
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 3 — Algorithmic Mastery & Dynamic Programming                    ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_3_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 3: ALGORITHMIC MASTERY & DYNAMIC PROGRAMMING                 ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    # Sorting, searching, pathfinding, and dynamic programming algorithms
+    # with step-by-step commentary and Big-O analysis.
+''')
+
+PHASE_3A_SORTING = emit(r'''
+    # ========================================================================
+    # 3.1  Sorting Algorithms
+    # ========================================================================
+
+    def quicksort(arr: list) -> list:
+        """QuickSort — Divide and Conquer sorting algorithm.
+
+        Algorithm
+        ---------
+        1. Pick a pivot (here: last element).
+        2. Partition: elements ≤ pivot go left, elements > pivot go right.
+        3. Recursively sort left and right partitions.
+        4. Concatenate: left + [pivot] + right.
+
+        Complexity
+        ----------
+        | Case    | Time       | Space    |
+        |---------|------------|----------|
+        | Best    | O(n log n) | O(log n) |
+        | Average | O(n log n) | O(log n) |
+        | Worst   | O(n²)     | O(n)     |
+
+        Worst case occurs when the pivot is always the min or max (sorted input).
+        Mitigation: Use randomized pivot or median-of-three.
+
+        Not stable: Equal elements may be reordered.
+        """
+        if len(arr) <= 1:
+            return arr
+
+        pivot = arr[-1]                          # Step 1: choose pivot
+        left = [x for x in arr[:-1] if x <= pivot]   # Step 2a: elements ≤ pivot
+        right = [x for x in arr[:-1] if x > pivot]   # Step 2b: elements > pivot
+
+        return quicksort(left) + [pivot] + quicksort(right)  # Step 3-4
+
+
+    def merge_sort(arr: list) -> list:
+        """MergeSort — Stable, divide-and-conquer sorting algorithm.
+
+        Algorithm
+        ---------
+        1. Split the array into two halves.
+        2. Recursively sort each half.
+        3. Merge the two sorted halves by comparing elements one by one.
+
+        Complexity
+        ----------
+        | Case    | Time       | Space |
+        |---------|------------|-------|
+        | All     | O(n log n) | O(n)  |
+
+        MergeSort is ALWAYS O(n log n) — no worst case degradation.
+        Stable: Equal elements maintain their relative order.
+        Trade-off: Requires O(n) extra space for merging.
+        """
+        if len(arr) <= 1:
+            return arr
+
+        mid = len(arr) // 2                      # Step 1: find midpoint
+        left = merge_sort(arr[:mid])             # Step 2a: sort left half
+        right = merge_sort(arr[mid:])            # Step 2b: sort right half
+
+        # Step 3: Merge two sorted arrays
+        merged = []
+        i = j = 0
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:              # ≤ makes it stable
+                merged.append(left[i])
+                i += 1
+            else:
+                merged.append(right[j])
+                j += 1
+        merged.extend(left[i:])                  # Remaining elements from left
+        merged.extend(right[j:])                 # Remaining elements from right
+        return merged
+
+
+    def heapsort(arr: list) -> list:
+        """HeapSort — In-place sorting using a max-heap.
+
+        Algorithm
+        ---------
+        1. Build a max-heap from the array (O(n) using bottom-up heapify).
+        2. Repeatedly extract the max (swap root with last element),
+           reduce heap size, and sift down the new root.
+
+        Complexity
+        ----------
+        | Case | Time       | Space |
+        |------|------------|-------|
+        | All  | O(n log n) | O(1)  |
+
+        Not stable.  In-place (O(1) extra space).
+        """
+        result = list(arr)
+        n = len(result)
+
+        def sift_down(heap, size, root):
+            """Sift the root element down to restore max-heap property."""
+            largest = root
+            left = 2 * root + 1
+            right = 2 * root + 2
+
+            if left < size and heap[left] > heap[largest]:
+                largest = left
+            if right < size and heap[right] > heap[largest]:
+                largest = right
+            if largest != root:
+                heap[root], heap[largest] = heap[largest], heap[root]
+                sift_down(heap, size, largest)
+
+        # Phase 1: Build max-heap (bottom-up)
+        for i in range(n // 2 - 1, -1, -1):
+            sift_down(result, n, i)
+
+        # Phase 2: Extract elements
+        for i in range(n - 1, 0, -1):
+            result[0], result[i] = result[i], result[0]  # Move max to end
+            sift_down(result, i, 0)                       # Restore heap on reduced range
+
+        return result
+
+
+    def radix_sort(arr: list) -> list:
+        """RadixSort — Non-comparison-based sort for non-negative integers.
+
+        Algorithm (LSD — Least Significant Digit first)
+        -------------------------------------------------
+        1. Find the maximum number to know the number of digits.
+        2. For each digit position (units, tens, hundreds, ...):
+           a. Use Counting Sort as a stable sub-routine on that digit.
+
+        Complexity
+        ----------
+        | Case | Time     | Space |
+        |------|----------|-------|
+        | All  | O(d × n) | O(n)  |
+
+        Where d = number of digits in the largest number.
+        If d is constant (e.g., all numbers < 10^6), this is effectively O(n).
+        Requires non-negative integers (or adaptation for negatives).
+        """
+        if not arr:
+            return arr
+
+        max_val = max(arr)
+        result = list(arr)
+        exp = 1   # Current digit place: 1 = units, 10 = tens, ...
+
+        while max_val // exp > 0:
+            # Counting sort on the current digit
+            count = [0] * 10       # digits 0-9
+            output = [0] * len(result)
+
+            # Count occurrences of each digit
+            for num in result:
+                digit = (num // exp) % 10
+                count[digit] += 1
+
+            # Cumulative count (tells us positions in output)
+            for i in range(1, 10):
+                count[i] += count[i - 1]
+
+            # Build output array (traverse RIGHT to LEFT for stability)
+            for i in range(len(result) - 1, -1, -1):
+                digit = (result[i] // exp) % 10
+                count[digit] -= 1
+                output[count[digit]] = result[i]
+
+            result = output
+            exp *= 10              # Move to the next digit position
+
+        return result
+
+    # --- Sorting Demo ---
+    print(f"\n{'=' * 60}")
+    print("SORTING ALGORITHMS DEMO")
+    print("=" * 60)
+    import random
+    test_arr = [random.randint(1, 100) for _ in range(15)]
+    print(f"Original:   {test_arr}")
+    print(f"QuickSort:  {quicksort(test_arr)}")
+    print(f"MergeSort:  {merge_sort(test_arr)}")
+    print(f"HeapSort:   {heapsort(test_arr)}")
+    print(f"RadixSort:  {radix_sort([abs(x) for x in test_arr])}")
+''')
+
+PHASE_3B_SEARCHING = emit(r'''
+    # ========================================================================
+    # 3.2  Searching — Binary Search, BFS, DFS
+    # ========================================================================
+
+    def binary_search(arr: list, target) -> int:
+        """Binary Search on a SORTED array.
+
+        Algorithm
+        ---------
+        1. Maintain two pointers: low and high.
+        2. Compute mid = (low + high) // 2.
+        3. If arr[mid] == target → found.
+        4. If arr[mid] < target → search right half (low = mid + 1).
+        5. If arr[mid] > target → search left half (high = mid - 1).
+        6. Repeat until low > high (not found).
+
+        Complexity
+        ----------
+        Time: O(log n) — halves the search space each iteration.
+        Space: O(1) — iterative version.
+
+        PRECONDITION: The array MUST be sorted.
+        """
+        low, high = 0, len(arr) - 1
+
+        while low <= high:
+            mid = (low + high) // 2      # Avoid overflow in other languages
+            if arr[mid] == target:
+                return mid               # Found at index mid
+            elif arr[mid] < target:
+                low = mid + 1            # Target is in the right half
+            else:
+                high = mid - 1           # Target is in the left half
+
+        return -1                        # Not found
+
+
+    def bfs(graph: dict, start) -> list:
+        """Breadth-First Search — explores all neighbors at current depth
+        before moving to the next depth level.
+
+        Algorithm
+        ---------
+        1. Enqueue the start vertex.
+        2. While the queue is not empty:
+           a. Dequeue a vertex.
+           b. Process it (add to visited order).
+           c. Enqueue all unvisited neighbors.
+
+        Complexity
+        ----------
+        Time:  O(V + E) — visits every vertex and edge once.
+        Space: O(V) — for the visited set and queue.
+
+        Use cases: Shortest path in unweighted graphs, level-order traversal,
+        connected components, and social network analysis.
+        """
+        from collections import deque
+
+        visited = set()
+        order = []
+        queue = deque([start])
+        visited.add(start)
+
+        while queue:
+            vertex = queue.popleft()     # FIFO: first in, first out
+            order.append(vertex)
+
+            for neighbor in graph.get(vertex, []):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        return order
+
+
+    def dfs(graph: dict, start) -> list:
+        """Depth-First Search — explores as deep as possible along each branch
+        before backtracking.
+
+        Algorithm (iterative using a stack)
+        ------------------------------------
+        1. Push the start vertex onto the stack.
+        2. While the stack is not empty:
+           a. Pop a vertex.
+           b. If not visited, process it and push all unvisited neighbors.
+
+        Complexity
+        ----------
+        Time:  O(V + E)
+        Space: O(V)
+
+        Use cases: Topological sorting, cycle detection, maze solving,
+        connected components, and pathfinding.
+        """
+        visited = set()
+        order = []
+        stack = [start]
+
+        while stack:
+            vertex = stack.pop()          # LIFO: last in, first out
+            if vertex not in visited:
+                visited.add(vertex)
+                order.append(vertex)
+                # Push neighbors in reverse order for consistent traversal
+                for neighbor in reversed(graph.get(vertex, [])):
+                    if neighbor not in visited:
+                        stack.append(neighbor)
+
+        return order
+
+    # --- Searching Demo ---
+    print(f"\n{'=' * 60}")
+    print("SEARCHING ALGORITHMS DEMO")
+    print("=" * 60)
+
+    sorted_arr = list(range(0, 100, 5))  # [0, 5, 10, ..., 95]
+    print(f"Binary search for 35 in {sorted_arr}: index = {binary_search(sorted_arr, 35)}")
+    print(f"Binary search for 37: index = {binary_search(sorted_arr, 37)}")
+
+    # Graph for BFS/DFS (adjacency list as dict of lists)
+    graph_dict = {
+        "A": ["B", "C"],
+        "B": ["A", "D", "E"],
+        "C": ["A", "F"],
+        "D": ["B"],
+        "E": ["B", "F"],
+        "F": ["C", "E"],
+    }
+    print(f"\nBFS from A: {bfs(graph_dict, 'A')}")
+    print(f"DFS from A: {dfs(graph_dict, 'A')}")
+''')
+
+PHASE_3C_PATHFINDING = emit(r'''
+    # ========================================================================
+    # 3.3  Pathfinding — Dijkstra's & A* Algorithm
+    # ========================================================================
+
+    import heapq
+
+    def dijkstra(graph: dict, start, end=None) -> tuple:
+        """Dijkstra's Algorithm — finds shortest paths from a source to all
+        vertices in a weighted graph with NON-NEGATIVE edge weights.
+
+        Algorithm
+        ---------
+        1. Initialize distances: dist[start] = 0, dist[v] = ∞ for all others.
+        2. Use a min-priority queue (heap) ordered by distance.
+        3. While the queue is not empty:
+           a. Extract vertex u with minimum distance.
+           b. For each neighbor v of u:
+              - If dist[u] + weight(u,v) < dist[v]:
+                Update dist[v] and add v to the queue.
+        4. The final dist[] array holds shortest paths from start.
+
+        Complexity
+        ----------
+        Time:  O((V + E) log V) with a binary heap.
+        Space: O(V) for distances and predecessors.
+
+        Limitation: Does NOT work with negative edge weights (use Bellman-Ford).
+        """
+        distances = {v: float("inf") for v in graph}
+        distances[start] = 0
+        predecessors = {v: None for v in graph}
+        priority_queue = [(0, start)]   # (distance, vertex)
+
+        while priority_queue:
+            current_dist, u = heapq.heappop(priority_queue)
+
+            # Skip if we've already found a shorter path
+            if current_dist > distances[u]:
+                continue
+
+            for neighbor, weight in graph[u]:
+                new_dist = current_dist + weight
+                if new_dist < distances[neighbor]:
+                    distances[neighbor] = new_dist
+                    predecessors[neighbor] = u
+                    heapq.heappush(priority_queue, (new_dist, neighbor))
+
+        # Reconstruct path to `end` if specified
+        path = []
+        if end is not None:
+            node = end
+            while node is not None:
+                path.append(node)
+                node = predecessors[node]
+            path.reverse()
+
+        return distances, path
+
+
+    def a_star(graph: dict, start, goal, heuristic: dict) -> tuple:
+        """A* Algorithm — an informed search that uses a heuristic to guide
+        exploration toward the goal, often much faster than Dijkstra.
+
+        Algorithm
+        ---------
+        A* uses f(n) = g(n) + h(n) where:
+          - g(n) = actual cost from start to n
+          - h(n) = heuristic estimate from n to goal
+          - f(n) = estimated total cost through n
+
+        The heuristic must be ADMISSIBLE (never overestimates) and ideally
+        CONSISTENT (h(n) ≤ cost(n→m) + h(m)) for optimality.
+
+        Complexity
+        ----------
+        Time:  O(E log V) in the worst case (same as Dijkstra).
+               In practice, a good heuristic prunes many nodes.
+        Space: O(V)
+
+        Real-world use cases: GPS navigation, video game pathfinding,
+        robotics motion planning.
+        """
+        open_set = [(0 + heuristic.get(start, 0), 0, start)]  # (f, g, node)
+        g_scores = {start: 0}
+        came_from = {}
+        closed_set = set()
+
+        while open_set:
+            f_score, g_score, current = heapq.heappop(open_set)
+
+            if current == goal:
+                # Reconstruct path
+                path = []
+                node = goal
+                while node in came_from:
+                    path.append(node)
+                    node = came_from[node]
+                path.append(start)
+                path.reverse()
+                return g_score, path
+
+            if current in closed_set:
+                continue
+            closed_set.add(current)
+
+            for neighbor, weight in graph.get(current, []):
+                if neighbor in closed_set:
+                    continue
+                tentative_g = g_score + weight
+                if tentative_g < g_scores.get(neighbor, float("inf")):
+                    g_scores[neighbor] = tentative_g
+                    came_from[neighbor] = current
+                    f = tentative_g + heuristic.get(neighbor, 0)
+                    heapq.heappush(open_set, (f, tentative_g, neighbor))
+
+        return float("inf"), []  # No path found
+
+    # --- Pathfinding Demo ---
+    print(f"\n{'=' * 60}")
+    print("PATHFINDING DEMO")
+    print("=" * 60)
+
+    # Weighted graph: vertex → [(neighbor, weight), ...]
+    weighted_graph = {
+        "A": [("B", 4), ("C", 2)],
+        "B": [("A", 4), ("D", 3), ("E", 1)],
+        "C": [("A", 2), ("D", 5)],
+        "D": [("B", 3), ("C", 5), ("E", 2), ("F", 6)],
+        "E": [("B", 1), ("D", 2), ("F", 4)],
+        "F": [("D", 6), ("E", 4)],
+    }
+
+    distances, path = dijkstra(weighted_graph, "A", "F")
+    print(f"Dijkstra A→F: distance = {distances['F']}, path = {path}")
+    print(f"All distances from A: {distances}")
+
+    # Heuristic for A* (straight-line estimate to F)
+    h = {"A": 7, "B": 4, "C": 6, "D": 3, "E": 2, "F": 0}
+    cost, a_path = a_star(weighted_graph, "A", "F", h)
+    print(f"\nA* search A→F: cost = {cost}, path = {a_path}")
+''')
+
+PHASE_3D_DP = emit(r'''
+    # ========================================================================
+    # 3.4  Dynamic Programming — Fibonacci, 0/1 Knapsack, LCS
+    # ========================================================================
+
+    def fibonacci_demo():
+        """Dynamic Programming applied to the Fibonacci sequence.
+
+        The Fibonacci sequence: F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2).
+
+        Three approaches with increasing sophistication:
+        """
+        from functools import lru_cache
+
+        # Approach 1: Naive Recursion — O(2^n) time, O(n) space (call stack)
+        # DO NOT use this for large n.  Exponential blowup because of
+        # overlapping subproblems (F(3) computed millions of times for F(30)).
+        def fib_naive(n: int) -> int:
+            if n <= 1:
+                return n
+            return fib_naive(n - 1) + fib_naive(n - 2)
+
+        # Approach 2: Memoization (Top-Down DP) — O(n) time, O(n) space
+        # Store results of subproblems to avoid recomputation.
+        @lru_cache(maxsize=None)
+        def fib_memo(n: int) -> int:
+            """Top-down DP: Solve F(n) by recursing and caching results.
+            Time: O(n) — each subproblem computed once.
+            Space: O(n) — cache + call stack.
+            """
+            if n <= 1:
+                return n
+            return fib_memo(n - 1) + fib_memo(n - 2)
+
+        # Approach 3: Tabulation (Bottom-Up DP) — O(n) time, O(1) space
+        def fib_tabulation(n: int) -> int:
+            """Bottom-up DP: Build from base cases upward.
+            Time: O(n) — single loop.
+            Space: O(1) — only two variables needed.
+            """
+            if n <= 1:
+                return n
+            prev2, prev1 = 0, 1    # F(0), F(1)
+            for _ in range(2, n + 1):
+                prev2, prev1 = prev1, prev2 + prev1
+            return prev1
+
+        print("Fibonacci Comparison:")
+        for n in [5, 10, 20, 30]:
+            memo_result = fib_memo(n)
+            tab_result = fib_tabulation(n)
+            print(f"  F({n:2d}) = {tab_result:>10,d}  (memo == tab: {memo_result == tab_result})")
+
+    fibonacci_demo()
+
+
+    def knapsack_01(weights: list, values: list, capacity: int) -> tuple:
+        """0/1 Knapsack Problem — Classic DP problem.
+
+        Problem: Given n items with weights and values, and a knapsack with
+        a maximum capacity, find the maximum total value you can carry.
+        Each item can be taken at most once (0/1 = take or leave).
+
+        Algorithm (Bottom-Up Tabulation)
+        ---------------------------------
+        Create a 2D table dp[i][w] = maximum value using items 0..i-1
+        with capacity w.
+
+        Recurrence:
+          dp[i][w] = max(
+              dp[i-1][w],                           # DON'T take item i
+              dp[i-1][w - weights[i-1]] + values[i-1]  # TAKE item i (if it fits)
+          )
+
+        Complexity
+        ----------
+        Time:  O(n × W) where n = number of items, W = capacity.
+        Space: O(n × W) — can be optimized to O(W) with 1D array.
+
+        This is PSEUDO-POLYNOMIAL — polynomial in W (the value), but
+        W can be exponentially large relative to the input size.
+        """
+        n = len(weights)
+        # dp[i][w] = max value with first i items and capacity w
+        dp = [[0] * (capacity + 1) for _ in range(n + 1)]
+
+        for i in range(1, n + 1):
+            for w in range(capacity + 1):
+                # Option 1: Don't take item i
+                dp[i][w] = dp[i - 1][w]
+                # Option 2: Take item i (if it fits)
+                if weights[i - 1] <= w:
+                    take = dp[i - 1][w - weights[i - 1]] + values[i - 1]
+                    dp[i][w] = max(dp[i][w], take)
+
+        # Backtrack to find which items were taken
+        selected = []
+        w = capacity
+        for i in range(n, 0, -1):
+            if dp[i][w] != dp[i - 1][w]:   # Item i was taken
+                selected.append(i - 1)     # 0-indexed item
+                w -= weights[i - 1]
+        selected.reverse()
+
+        return dp[n][capacity], selected
+
+    # --- Knapsack Demo ---
+    print(f"\n{'=' * 60}")
+    print("0/1 KNAPSACK PROBLEM")
+    print("=" * 60)
+    weights = [2, 3, 4, 5]
+    values  = [3, 4, 5, 6]
+    capacity = 8
+    max_val, items = knapsack_01(weights, values, capacity)
+    print(f"Items:    weights={weights}, values={values}")
+    print(f"Capacity: {capacity}")
+    print(f"Max value: {max_val}, selected item indices: {items}")
+    for idx in items:
+        print(f"  Item {idx}: weight={weights[idx]}, value={values[idx]}")
+
+
+    def longest_common_subsequence(s1: str, s2: str) -> tuple:
+        """Longest Common Subsequence (LCS) — Classic DP string problem.
+
+        Problem: Find the longest subsequence common to both strings.
+        A subsequence is a sequence that appears in the same relative order
+        but not necessarily contiguously.
+
+        Example: LCS("ABCBDAB", "BDCAB") = "BCAB" (length 4)
+
+        Algorithm (Bottom-Up Tabulation)
+        ---------------------------------
+        dp[i][j] = length of LCS of s1[0..i-1] and s2[0..j-1].
+
+        Recurrence:
+          If s1[i-1] == s2[j-1]:
+              dp[i][j] = dp[i-1][j-1] + 1    # Characters match → extend LCS
+          Else:
+              dp[i][j] = max(dp[i-1][j], dp[i][j-1])  # Skip one character
+
+        Complexity
+        ----------
+        Time:  O(m × n) where m = len(s1), n = len(s2).
+        Space: O(m × n).
+        """
+        m, n = len(s1), len(s2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if s1[i - 1] == s2[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + 1
+                else:
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+        # Backtrack to reconstruct the LCS string
+        lcs = []
+        i, j = m, n
+        while i > 0 and j > 0:
+            if s1[i - 1] == s2[j - 1]:
+                lcs.append(s1[i - 1])
+                i -= 1
+                j -= 1
+            elif dp[i - 1][j] > dp[i][j - 1]:
+                i -= 1
+            else:
+                j -= 1
+        lcs.reverse()
+
+        return dp[m][n], "".join(lcs)
+
+    # --- LCS Demo ---
+    print(f"\n{'=' * 60}")
+    print("LONGEST COMMON SUBSEQUENCE")
+    print("=" * 60)
+    s1 = "ABCBDAB"
+    s2 = "BDCAB"
+    length, lcs_str = longest_common_subsequence(s1, s2)
+    print(f"s1 = {s1!r}")
+    print(f"s2 = {s2!r}")
+    print(f"LCS length = {length}, LCS = {lcs_str!r}")
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 4 — Software Architecture & Design Patterns                     ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_4_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 4: SOFTWARE ARCHITECTURE & DESIGN PATTERNS (Gang of Four)    ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    # Implementing classic GoF patterns with Pythonic idioms.
+    # Each pattern includes: Intent, Real-world use case, UML-like structure.
+''')
+
+PHASE_4A_CREATIONAL = emit(r'''
+    # ========================================================================
+    # 4.1  Creational Patterns — Singleton, Factory Method, Builder
+    # ========================================================================
+
+    # -------------------------------------------------------------------
+    # 4.1.1  Singleton Pattern
+    # -------------------------------------------------------------------
+
+    class SingletonMeta(type):
+        """Metaclass-based Singleton — the most Pythonic approach.
+
+        Intent: Ensure a class has only ONE instance and provide a global
+        point of access to it.
+
+        Real-world use case: Database connection pools, logging services,
+        configuration managers, and hardware interface controllers.
+
+        How it works:
+        - Override __call__ in the metaclass.
+        - __call__ is invoked when you do ClassName(), BEFORE __init__.
+        - We check if an instance already exists; if so, return it.
+        """
+        _instances = {}
+
+        def __call__(cls, *args, **kwargs):
+            if cls not in cls._instances:
+                # First call: create the instance normally
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+            return cls._instances[cls]
+
+
+    class DatabaseConnection(metaclass=SingletonMeta):
+        """Example Singleton — simulates a database connection pool.
+
+        No matter how many times you call DatabaseConnection(),
+        you always get the SAME instance.
+        """
+        def __init__(self, host: str = "localhost", port: int = 5432):
+            # __init__ runs only on the FIRST instantiation
+            self.host = host
+            self.port = port
+            self._connected = True
+            print(f"  [Singleton] Created connection to {host}:{port}")
+
+        def query(self, sql: str) -> str:
+            return f"  [DB] Executing: {sql}"
+
+    # Alternative: Singleton using __new__ (simpler but less flexible)
+    class SingletonNew:
+        """Singleton using __new__ — works but metaclass approach is preferred
+        because __init__ still runs on every call with __new__.
+        """
+        _instance = None
+
+        def __new__(cls, *args, **kwargs):
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+            return cls._instance
+
+    # --- Singleton Demo ---
+    print(f"\n{'=' * 60}")
+    print("SINGLETON PATTERN DEMO")
+    print("=" * 60)
+    db1 = DatabaseConnection("prod-server", 5432)
+    db2 = DatabaseConnection("other-server", 3306)  # Ignored — returns same instance
+    print(f"db1 is db2: {db1 is db2}")  # True
+    print(f"db1.host: {db1.host}")      # "prod-server"
+    print(db1.query("SELECT * FROM users"))
+
+    # -------------------------------------------------------------------
+    # 4.1.2  Factory Method Pattern
+    # -------------------------------------------------------------------
+
+    from abc import ABC, abstractmethod
+
+    class Notification(ABC):
+        """Abstract product — defines the interface for notifications.
+
+        Intent: Define an interface for creating objects, but let subclasses
+        decide WHICH class to instantiate.
+
+        Real-world use case: Notification systems (email, SMS, push),
+        document parsers (PDF, Word, CSV), and payment processors.
+        """
+
+        @abstractmethod
+        def send(self, message: str) -> str:
+            """Send the notification.  Subclasses implement delivery logic."""
+            ...
+
+    class EmailNotification(Notification):
+        def send(self, message: str) -> str:
+            return f"  📧 Email: {message}"
+
+    class SMSNotification(Notification):
+        def send(self, message: str) -> str:
+            return f"  📱 SMS: {message}"
+
+    class PushNotification(Notification):
+        def send(self, message: str) -> str:
+            return f"  🔔 Push: {message}"
+
+    class NotificationFactory:
+        """Factory — creates the right notification type based on a string key.
+
+        Why use a factory?
+        - Client code doesn't need to know about concrete classes.
+        - Adding a new notification type requires NO changes to client code.
+        - Centralizes object creation logic.
+        """
+        _creators = {
+            "email": EmailNotification,
+            "sms": SMSNotification,
+            "push": PushNotification,
+        }
+
+        @classmethod
+        def create(cls, channel: str) -> Notification:
+            creator = cls._creators.get(channel.lower())
+            if not creator:
+                raise ValueError(f"Unknown channel: {channel!r}")
+            return creator()
+
+        @classmethod
+        def register(cls, channel: str, creator_class: type) -> None:
+            """Open for extension: register new notification types at runtime."""
+            cls._creators[channel.lower()] = creator_class
+
+    # --- Factory Demo ---
+    print(f"\n{'=' * 60}")
+    print("FACTORY METHOD PATTERN DEMO")
+    print("=" * 60)
+    for channel in ["email", "sms", "push"]:
+        notif = NotificationFactory.create(channel)
+        print(notif.send(f"Hello from {channel}!"))
+
+    # -------------------------------------------------------------------
+    # 4.1.3  Builder Pattern
+    # -------------------------------------------------------------------
+
+    class HTTPRequest:
+        """The complex object that the Builder constructs.
+
+        Intent: Separate the construction of a complex object from its
+        representation, allowing the same construction process to create
+        different representations.
+
+        Real-world use case: Building HTTP requests, SQL queries,
+        UI components, or configuration objects with many optional parameters.
+        """
+        def __init__(self):
+            self.method = "GET"
+            self.url = ""
+            self.headers = {}
+            self.body = None
+            self.timeout = 30
+
+        def __repr__(self):
+            return (f"HTTPRequest(method={self.method!r}, url={self.url!r}, "
+                    f"headers={self.headers}, body={self.body!r}, "
+                    f"timeout={self.timeout})")
+
+
+    class HTTPRequestBuilder:
+        """Builder for HTTPRequest — provides a fluent interface (method chaining).
+
+        Each setter returns `self`, enabling:
+            request = (HTTPRequestBuilder()
+                       .set_method("POST")
+                       .set_url("/api/data")
+                       .add_header("Content-Type", "application/json")
+                       .set_body('{"key": "value"}')
+                       .build())
+        """
+        def __init__(self):
+            self._request = HTTPRequest()
+
+        def set_method(self, method: str) -> "HTTPRequestBuilder":
+            self._request.method = method.upper()
+            return self
+
+        def set_url(self, url: str) -> "HTTPRequestBuilder":
+            self._request.url = url
+            return self
+
+        def add_header(self, key: str, value: str) -> "HTTPRequestBuilder":
+            self._request.headers[key] = value
+            return self
+
+        def set_body(self, body: str) -> "HTTPRequestBuilder":
+            self._request.body = body
+            return self
+
+        def set_timeout(self, seconds: int) -> "HTTPRequestBuilder":
+            self._request.timeout = seconds
+            return self
+
+        def build(self) -> HTTPRequest:
+            """Finalize and return the constructed object."""
+            if not self._request.url:
+                raise ValueError("URL is required")
+            return self._request
+
+    # --- Builder Demo ---
+    print(f"\n{'=' * 60}")
+    print("BUILDER PATTERN DEMO")
+    print("=" * 60)
+    request = (HTTPRequestBuilder()
+               .set_method("POST")
+               .set_url("https://api.example.com/data")
+               .add_header("Authorization", "Bearer token123")
+               .add_header("Content-Type", "application/json")
+               .set_body('{"user": "alice", "action": "login"}')
+               .set_timeout(10)
+               .build())
+    print(f"Built request: {request}")
+''')
+
+PHASE_4B_STRUCTURAL = emit(r'''
+    # ========================================================================
+    # 4.2  Structural Patterns — Adapter, Decorator, Facade
+    # ========================================================================
+
+    # -------------------------------------------------------------------
+    # 4.2.1  Adapter Pattern
+    # -------------------------------------------------------------------
+
+    class LegacyPrinter:
+        """A legacy class with an incompatible interface.
+        We can't modify this code (it's from a third-party library).
+        """
+        def print_document(self, text: str) -> str:
+            return f"  [Legacy Printer] {text}"
+
+    class ModernPrinterInterface(ABC):
+        """The interface our system expects."""
+        @abstractmethod
+        def output(self, content: str) -> str:
+            ...
+
+    class PrinterAdapter(ModernPrinterInterface):
+        """Adapter — wraps the legacy class to match the modern interface.
+
+        Intent: Convert the interface of a class into another interface
+        that clients expect.  Lets classes work together that couldn't
+        otherwise because of incompatible interfaces.
+
+        Real-world use case: Integrating legacy systems, wrapping third-party
+        libraries, and API version migration.
+        """
+        def __init__(self, legacy_printer: LegacyPrinter):
+            self._printer = legacy_printer
+
+        def output(self, content: str) -> str:
+            # Translate the call to the legacy interface
+            return self._printer.print_document(content)
+
+    # --- Adapter Demo ---
+    print(f"\n{'=' * 60}")
+    print("ADAPTER PATTERN DEMO")
+    print("=" * 60)
+    legacy = LegacyPrinter()
+    adapted = PrinterAdapter(legacy)
+    print(adapted.output("Adapter converts interfaces seamlessly"))
+
+    # -------------------------------------------------------------------
+    # 4.2.2  Decorator Pattern (Class-based — not to confuse with @decorator)
+    # -------------------------------------------------------------------
+
+    class DataSource(ABC):
+        """Component interface for reading/writing data."""
+        @abstractmethod
+        def write(self, data: str) -> str:
+            ...
+        @abstractmethod
+        def read(self) -> str:
+            ...
+
+    class FileDataSource(DataSource):
+        """Concrete component — basic data source."""
+        def __init__(self):
+            self._data = ""
+
+        def write(self, data: str) -> str:
+            self._data = data
+            return f"  [File] Wrote: {data!r}"
+
+        def read(self) -> str:
+            return self._data
+
+    class DataSourceDecorator(DataSource):
+        """Base decorator — wraps a DataSource and delegates to it.
+
+        Intent: Attach additional responsibilities to an object dynamically.
+        Decorators provide a flexible alternative to subclassing.
+
+        Real-world use case: I/O streams (buffering, compression, encryption),
+        middleware chains, and logging wrappers.
+        """
+        def __init__(self, source: DataSource):
+            self._wrapped = source
+
+        def write(self, data: str) -> str:
+            return self._wrapped.write(data)
+
+        def read(self) -> str:
+            return self._wrapped.read()
+
+    class EncryptionDecorator(DataSourceDecorator):
+        """Adds 'encryption' (simple ROT13 for demonstration)."""
+        def write(self, data: str) -> str:
+            import codecs
+            encrypted = codecs.encode(data, "rot_13")
+            print(f"  [Encryption] Encrypting data before write")
+            return super().write(encrypted)
+
+        def read(self) -> str:
+            import codecs
+            data = super().read()
+            return codecs.decode(data, "rot_13")
+
+    class CompressionDecorator(DataSourceDecorator):
+        """Adds 'compression' (simulated by removing spaces)."""
+        def write(self, data: str) -> str:
+            compressed = data.replace(" ", "")
+            print(f"  [Compression] Compressing data before write")
+            return super().write(compressed)
+
+        def read(self) -> str:
+            return super().read()  # Can't truly decompress this simple example
+
+    # --- Decorator Pattern Demo ---
+    print(f"\n{'=' * 60}")
+    print("DECORATOR PATTERN DEMO")
+    print("=" * 60)
+    # Stack decorators: Compression → Encryption → File
+    source = CompressionDecorator(EncryptionDecorator(FileDataSource()))
+    print(source.write("Hello World Secret Data"))
+    print(f"  Reading back: {source.read()!r}")
+
+    # -------------------------------------------------------------------
+    # 4.2.3  Facade Pattern
+    # -------------------------------------------------------------------
+
+    class CPU:
+        def freeze(self) -> str: return "  [CPU] Freezing processor"
+        def jump(self, addr: int) -> str: return f"  [CPU] Jumping to 0x{addr:08X}"
+        def execute(self) -> str: return "  [CPU] Executing instructions"
+
+    class Memory:
+        def load(self, addr: int, data: str) -> str:
+            return f"  [Memory] Loading {data!r} at 0x{addr:08X}"
+
+    class HardDrive:
+        def read(self, sector: int, size: int) -> str:
+            return f"  [HDD] Reading {size} bytes from sector {sector}"
+
+    class ComputerFacade:
+        """Facade — provides a simplified interface to a complex subsystem.
+
+        Intent: Provide a unified, higher-level interface that makes the
+        subsystem easier to use.
+
+        Real-world use case: Starting a computer (involves CPU, memory, HDD),
+        video encoding (codec, container, streaming), and web frameworks
+        (routing, middleware, templating behind a simple API).
+        """
+        def __init__(self):
+            self._cpu = CPU()
+            self._memory = Memory()
+            self._hdd = HardDrive()
+
+        def start(self) -> None:
+            """One simple method replaces a complex boot sequence."""
+            print(self._cpu.freeze())
+            print(self._hdd.read(sector=0, size=1024))
+            print(self._memory.load(addr=0x00000000, data="boot sector"))
+            print(self._cpu.jump(addr=0x00000000))
+            print(self._cpu.execute())
+            print("  [Facade] Computer started successfully!")
+
+    # --- Facade Demo ---
+    print(f"\n{'=' * 60}")
+    print("FACADE PATTERN DEMO")
+    print("=" * 60)
+    computer = ComputerFacade()
+    computer.start()
+''')
+
+PHASE_4C_BEHAVIORAL = emit(r'''
+    # ========================================================================
+    # 4.3  Behavioral Patterns — Observer, Strategy, Command
+    # ========================================================================
+
+    # -------------------------------------------------------------------
+    # 4.3.1  Observer Pattern (Pub/Sub)
+    # -------------------------------------------------------------------
+
+    class EventManager:
+        """The Observer (Pub/Sub) Pattern — decouples event producers from consumers.
+
+        Intent: Define a one-to-many dependency between objects so that when
+        one object changes state, all its dependents are notified automatically.
+
+        Real-world use case: GUI event systems, message brokers, reactive
+        programming, and stock price monitoring systems.
+
+        Components:
+          - Subject (EventManager): Manages subscriptions and notifications.
+          - Observers (listeners): Callables that react to events.
+        """
+        def __init__(self):
+            self._listeners = {}   # event_type → [callable, ...]
+
+        def subscribe(self, event_type: str, listener) -> None:
+            """Register a listener for a specific event type."""
+            if event_type not in self._listeners:
+                self._listeners[event_type] = []
+            self._listeners[event_type].append(listener)
+
+        def unsubscribe(self, event_type: str, listener) -> None:
+            """Remove a listener."""
+            if event_type in self._listeners:
+                self._listeners[event_type].remove(listener)
+
+        def notify(self, event_type: str, data=None) -> None:
+            """Notify all listeners of an event.  O(k) where k = # listeners."""
+            for listener in self._listeners.get(event_type, []):
+                listener(event_type, data)
+
+    class UserService:
+        """A service that emits events when users are created or deleted."""
+        def __init__(self, events: EventManager):
+            self.events = events
+
+        def create_user(self, username: str) -> None:
+            print(f"  [UserService] Created user: {username}")
+            self.events.notify("user_created", {"username": username})
+
+        def delete_user(self, username: str) -> None:
+            print(f"  [UserService] Deleted user: {username}")
+            self.events.notify("user_deleted", {"username": username})
+
+    # --- Observer Demo ---
+    print(f"\n{'=' * 60}")
+    print("OBSERVER (PUB/SUB) PATTERN DEMO")
+    print("=" * 60)
+
+    events = EventManager()
+
+    # Register listeners (observers)
+    def log_listener(event, data):
+        print(f"  [Logger] Event: {event}, Data: {data}")
+
+    def email_listener(event, data):
+        print(f"  [Email] Sending welcome email to {data['username']}")
+
+    events.subscribe("user_created", log_listener)
+    events.subscribe("user_created", email_listener)
+    events.subscribe("user_deleted", log_listener)
+
+    user_service = UserService(events)
+    user_service.create_user("alice")
+    user_service.delete_user("bob")
+
+    # -------------------------------------------------------------------
+    # 4.3.2  Strategy Pattern (using Callable)
+    # -------------------------------------------------------------------
+
+    from typing import Callable, List
+
+    class DataProcessor:
+        """Strategy Pattern — select algorithm at runtime via a callable.
+
+        Intent: Define a family of algorithms, encapsulate each one, and make
+        them interchangeable.  Strategy lets the algorithm vary independently
+        from the clients that use it.
+
+        In Python, functions are first-class citizens, so we can pass
+        strategy functions directly instead of creating strategy classes.
+
+        Real-world use case: Sorting strategies, compression algorithms,
+        pricing calculations, and authentication methods.
+        """
+        def __init__(self, data: List[float], strategy: Callable[[List[float]], float]):
+            self.data = data
+            self._strategy = strategy
+
+        def set_strategy(self, strategy: Callable[[List[float]], float]) -> None:
+            """Change the strategy at runtime."""
+            self._strategy = strategy
+
+        def execute(self) -> float:
+            """Execute the current strategy on the data."""
+            return self._strategy(self.data)
+
+    # Concrete strategies (just functions!)
+    def mean_strategy(data: List[float]) -> float:
+        """Calculate arithmetic mean.  O(n) time."""
+        return sum(data) / len(data) if data else 0.0
+
+    def median_strategy(data: List[float]) -> float:
+        """Calculate median.  O(n log n) time (due to sorting)."""
+        sorted_data = sorted(data)
+        n = len(sorted_data)
+        if n % 2 == 0:
+            return (sorted_data[n // 2 - 1] + sorted_data[n // 2]) / 2
+        return sorted_data[n // 2]
+
+    def mode_strategy(data: List[float]) -> float:
+        """Calculate mode (most frequent value).  O(n) time."""
+        from collections import Counter
+        counts = Counter(data)
+        return counts.most_common(1)[0][0]
+
+    # --- Strategy Demo ---
+    print(f"\n{'=' * 60}")
+    print("STRATEGY PATTERN DEMO")
+    print("=" * 60)
+    data = [4.0, 1.0, 2.0, 2.0, 3.0, 5.0, 2.0]
+    processor = DataProcessor(data, mean_strategy)
+    print(f"Data: {data}")
+    print(f"Mean strategy:   {processor.execute():.2f}")
+    processor.set_strategy(median_strategy)
+    print(f"Median strategy: {processor.execute():.2f}")
+    processor.set_strategy(mode_strategy)
+    print(f"Mode strategy:   {processor.execute():.2f}")
+
+    # -------------------------------------------------------------------
+    # 4.3.3  Command Pattern
+    # -------------------------------------------------------------------
+
+    class Command(ABC):
+        """Abstract command — encapsulates a request as an object.
+
+        Intent: Encapsulate a request as an object, thereby letting you
+        parameterize clients with different requests, queue or log requests,
+        and support undoable operations.
+
+        Real-world use case: Undo/redo in text editors, macro recording,
+        transaction systems, and task queuing.
+        """
+        @abstractmethod
+        def execute(self) -> str:
+            ...
+        @abstractmethod
+        def undo(self) -> str:
+            ...
+
+    class TextEditor:
+        """Receiver — the object that actually performs the work."""
+        def __init__(self):
+            self.content = ""
+
+        def insert(self, text: str) -> None:
+            self.content += text
+
+        def delete_last(self, count: int) -> str:
+            deleted = self.content[-count:]
+            self.content = self.content[:-count]
+            return deleted
+
+        def __repr__(self):
+            return f'TextEditor(content={self.content!r})'
+
+    class InsertCommand(Command):
+        """Concrete command: insert text into the editor."""
+        def __init__(self, editor: TextEditor, text: str):
+            self._editor = editor
+            self._text = text
+
+        def execute(self) -> str:
+            self._editor.insert(self._text)
+            return f"  [Insert] Added: {self._text!r}"
+
+        def undo(self) -> str:
+            self._editor.delete_last(len(self._text))
+            return f"  [Undo Insert] Removed: {self._text!r}"
+
+    class CommandHistory:
+        """Invoker — stores and executes commands, supports undo."""
+        def __init__(self):
+            self._history: list = []
+
+        def execute(self, command: Command) -> str:
+            result = command.execute()
+            self._history.append(command)
+            return result
+
+        def undo(self) -> str:
+            if not self._history:
+                return "  [History] Nothing to undo"
+            command = self._history.pop()
+            return command.undo()
+
+    # --- Command Demo ---
+    print(f"\n{'=' * 60}")
+    print("COMMAND PATTERN DEMO")
+    print("=" * 60)
+    editor = TextEditor()
+    history = CommandHistory()
+
+    print(history.execute(InsertCommand(editor, "Hello ")))
+    print(history.execute(InsertCommand(editor, "World")))
+    print(history.execute(InsertCommand(editor, "!")))
+    print(f"  Editor state: {editor}")
+
+    print(history.undo())
+    print(f"  After undo: {editor}")
+    print(history.undo())
+    print(f"  After undo: {editor}")
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 5 — NumPy Mastery                                               ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_5_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 5: NUMPY MASTERY (LINEAR ALGEBRA & VECTORIZATION)            ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    import numpy as np
+''')
+
+PHASE_5A_ARRAYS = emit(r'''
+    # ========================================================================
+    # 5.1  Array Creation, Strides, Memory Layout
+    # ========================================================================
+
+    def numpy_array_fundamentals():
+        """NumPy array internals and memory model.
+
+        Key Concepts
+        -------------
+        * ndarray: N-dimensional homogeneous array of fixed-size items.
+        * dtype: Data type of elements (float64, int32, etc.).
+        * shape: Tuple of dimension sizes.
+        * strides: Number of bytes to step in each dimension.
+        * C-order (row-major) vs Fortran-order (column-major).
+        """
+        # --- Array Creation ---
+        a1 = np.array([1, 2, 3, 4, 5])                     # From a list
+        a2 = np.zeros((3, 4))                                # 3×4 zeros
+        a3 = np.ones((2, 3), dtype=np.int32)                 # 2×3 ones (int32)
+        a4 = np.arange(0, 10, 0.5)                           # Like range but for floats
+        a5 = np.linspace(0, 1, 11)                           # 11 evenly spaced [0, 1]
+        a6 = np.eye(4)                                       # 4×4 identity matrix
+        a7 = np.random.default_rng(42).standard_normal((3, 3))  # Random 3×3
+
+        print("Array Creation Examples:")
+        print(f"  arange:   {a4[:5]}...")
+        print(f"  linspace: {a5}")
+        print(f"  identity:\n{a6}")
+        print(f"  random:\n{a7}")
+
+        # --- Strides & Memory Layout ---
+        c_array = np.array([[1, 2, 3], [4, 5, 6]], order='C')   # Row-major (C)
+        f_array = np.array([[1, 2, 3], [4, 5, 6]], order='F')   # Column-major (Fortran)
+
+        print(f"\nC-order strides:       {c_array.strides}")
+        # For int64 (8 bytes): strides = (24, 8)
+        # → move 24 bytes to go to next row, 8 bytes for next column.
+        print(f"Fortran-order strides: {f_array.strides}")
+        # strides = (8, 16)
+        # → move 8 bytes for next row, 16 bytes for next column.
+
+        # WHY THIS MATTERS: Accessing data along the stride-1 dimension is
+        # fastest because it's contiguous in memory → better CPU cache usage.
+        # For C-order: iterating over columns within a row is fast.
+        # For Fortran-order: iterating over rows within a column is fast.
+
+        print(f"\nC-order flags:\n{c_array.flags}")
+
+        # --- Reshaping & Views vs Copies ---
+        arr = np.arange(12)
+        reshaped = arr.reshape(3, 4)     # Returns a VIEW (no data copied)
+        print(f"\nOriginal: {arr}")
+        print(f"Reshaped (3×4):\n{reshaped}")
+        reshaped[0, 0] = 99             # Modifying the view modifies the original!
+        print(f"After modifying view: arr[0] = {arr[0]}")  # 99
+
+        copied = arr.copy()              # Explicit copy — independent data
+        copied[0] = 0
+        print(f"After modifying copy: arr[0] = {arr[0]}")  # Still 99
+
+    numpy_array_fundamentals()
+''')
+
+PHASE_5B_INDEXING = emit(r'''
+    # ========================================================================
+    # 5.2  Indexing, Boolean Masking, Broadcasting
+    # ========================================================================
+
+    def numpy_indexing_broadcasting():
+        """Advanced NumPy indexing and broadcasting rules.
+
+        Broadcasting Rules (how NumPy handles arrays of different shapes):
+        ------------------------------------------------------------------
+        1. If arrays have different numbers of dimensions, the shape of the
+           smaller-dimensional array is PADDED with 1s on the LEFT.
+        2. Arrays with size 1 along a dimension act as if they had the size
+           of the largest array in that dimension (values are repeated).
+        3. If sizes disagree and neither is 1, an error is raised.
+
+        Example: (3,4) + (4,) → (3,4) + (1,4) → (3,4) + (3,4) = (3,4)
+        """
+        rng = np.random.default_rng(42)
+        arr = rng.integers(0, 100, size=(4, 5))
+        print(f"Array (4×5):\n{arr}")
+
+        # --- Basic Indexing ---
+        print(f"\narr[1, 3] = {arr[1, 3]}")         # Single element
+        print(f"arr[0]    = {arr[0]}")               # Entire row 0
+        print(f"arr[:, 2] = {arr[:, 2]}")            # Entire column 2
+        print(f"arr[1:3]  =\n{arr[1:3]}")            # Rows 1 and 2
+
+        # --- Fancy (Advanced) Indexing —  returns a COPY, not a view ---
+        rows = [0, 2, 3]
+        cols = [1, 3, 4]
+        print(f"\nFancy indexing arr[{rows}, {cols}] = {arr[rows, cols]}")
+
+        # --- Boolean Masking ---
+        mask = arr > 50
+        print(f"\nBoolean mask (arr > 50):\n{mask}")
+        print(f"Elements > 50: {arr[mask]}")         # Flat array of matching elements
+
+        # Combine conditions with & (AND), | (OR), ~ (NOT)
+        combined = arr[(arr > 20) & (arr < 60)]
+        print(f"Elements 20 < x < 60: {combined}")
+
+        # --- np.where (vectorized conditional) ---
+        result = np.where(arr > 50, arr, 0)  # Keep values > 50, replace rest with 0
+        print(f"\nnp.where(arr > 50, arr, 0):\n{result}")
+
+        # --- Broadcasting Demo ---
+        print(f"\n--- Broadcasting ---")
+
+        # Case 1: Scalar broadcast
+        print(f"arr * 2 (scalar broadcast):\n{arr * 2}")
+
+        # Case 2: Row vector broadcast (1×5) + (4×5)
+        row_means = arr.mean(axis=0)    # shape (5,)
+        centered = arr - row_means      # (4,5) - (5,) → (4,5) - (1,5) → (4,5)
+        print(f"\nColumn means: {row_means}")
+        print(f"Centered array:\n{centered}")
+
+        # Case 3: Column vector broadcast (4×1) + (4×5)
+        col_maxes = arr.max(axis=1, keepdims=True)  # shape (4,1)
+        normalized = arr / col_maxes    # (4,5) / (4,1) → (4,5)
+        print(f"\nRow maxes (keepdims):\n{col_maxes}")
+        print(f"Row-normalized:\n{normalized}")
+
+        # --- Broadcasting Failure (shapes are incompatible) ---
+        try:
+            a = np.ones((3, 4))
+            b = np.ones((3, 5))
+            _ = a + b   # (3,4) + (3,5) → Error: neither dim is 1
+        except ValueError as e:
+            print(f"\nBroadcasting error (expected): {e}")
+
+    numpy_indexing_broadcasting()
+''')
+
+PHASE_5C_VECTORIZATION = emit(r'''
+    # ========================================================================
+    # 5.3  Vectorized Operations vs Standard Loops (Performance)
+    # ========================================================================
+
+    def numpy_vectorization_demo():
+        """Demonstrate why vectorized NumPy operations are orders of magnitude
+        faster than Python loops.
+
+        Why vectorization is fast:
+        - NumPy operations are implemented in optimized C code.
+        - They operate on contiguous memory blocks (cache-friendly).
+        - They avoid Python's per-element type checking and dispatch overhead.
+        - They can use SIMD instructions on modern CPUs.
+        """
+        import time
+
+        n = 1_000_000
+        rng = np.random.default_rng(42)
+        a = rng.standard_normal(n)
+        b = rng.standard_normal(n)
+
+        # --- Python loop (slow) ---
+        start = time.perf_counter()
+        result_loop = [a[i] + b[i] for i in range(n)]
+        loop_time = time.perf_counter() - start
+
+        # --- NumPy vectorized (fast) ---
+        start = time.perf_counter()
+        result_vec = a + b
+        vec_time = time.perf_counter() - start
+
+        print(f"Addition of {n:,} elements:")
+        print(f"  Python loop: {loop_time:.4f}s")
+        print(f"  NumPy vec:   {vec_time:.6f}s")
+        print(f"  Speedup:     {loop_time / vec_time:.0f}×")
+
+        # --- Universal Functions (ufuncs) ---
+        # NumPy provides vectorized versions of math operations
+        print(f"\nUniversal Functions (ufuncs):")
+        x = np.linspace(0, 2 * np.pi, 8)
+        print(f"  sin(x) = {np.sin(x)}")
+        print(f"  exp(x[:4]) = {np.exp(x[:4])}")
+        print(f"  sqrt([1,4,9,16]) = {np.sqrt(np.array([1, 4, 9, 16]))}")
+
+        # --- Aggregation functions ---
+        data = rng.standard_normal(1000)
+        print(f"\nAggregations on 1000 random values:")
+        print(f"  mean   = {data.mean():.4f}")
+        print(f"  std    = {data.std():.4f}")
+        print(f"  min    = {data.min():.4f}")
+        print(f"  max    = {data.max():.4f}")
+        print(f"  sum    = {data.sum():.4f}")
+        print(f"  argmax = {data.argmax()} (index of max)")
+
+        # --- Linear Algebra ---
+        print(f"\nLinear Algebra:")
+        A = np.array([[1, 2], [3, 4]])
+        B = np.array([[5, 6], [7, 8]])
+        print(f"  A @ B (matrix multiply):\n{A @ B}")
+        print(f"  det(A) = {np.linalg.det(A):.1f}")
+        eigenvalues, eigenvectors = np.linalg.eig(A)
+        print(f"  eigenvalues  = {eigenvalues}")
+        print(f"  eigenvectors =\n{eigenvectors}")
+        print(f"  A^(-1) =\n{np.linalg.inv(A)}")
+
+    numpy_vectorization_demo()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 6 — Pandas Mastery                                              ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_6_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 6: PANDAS MASTERY (DATA WRANGLING)                           ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    import pandas as pd
+''')
+
+PHASE_6A_INDEXING = emit(r'''
+    # ========================================================================
+    # 6.1  .loc vs .iloc, Dealing with NaN (Imputation)
+    # ========================================================================
+
+    def pandas_indexing_nan():
+        """Pandas indexing and missing data handling.
+
+        .loc vs .iloc
+        ---------------
+        * .loc[row_label, col_label] — Label-based indexing.
+          Includes BOTH endpoints: df.loc[0:3] gives rows 0, 1, 2, 3.
+        * .iloc[row_int, col_int] — Integer position-based indexing.
+          Excludes the end: df.iloc[0:3] gives rows 0, 1, 2.
+
+        NaN Handling Strategies
+        -----------------------
+        1. Drop: Remove rows/columns with NaN.
+        2. Fill (Forward/Backward): Propagate last valid value.
+        3. Impute (Mean/Median/Mode): Replace with a statistical measure.
+        4. Interpolate: Estimate missing values from neighbors.
+        """
+        rng = np.random.default_rng(42)
+
+        # Create a DataFrame with some NaN values
+        df = pd.DataFrame({
+            "Name": ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank"],
+            "Age": [25, np.nan, 35, 28, np.nan, 42],
+            "Salary": [50000, 60000, np.nan, 75000, 55000, np.nan],
+            "Department": ["Eng", "Eng", "Sales", "Sales", "Eng", "Sales"],
+        })
+        print("Original DataFrame:")
+        print(df)
+        print(f"\nNaN counts per column:\n{df.isna().sum()}")
+
+        # --- .loc (label-based) ---
+        print(f"\n--- .loc (label-based) ---")
+        print(f"df.loc[1, 'Name']       = {df.loc[1, 'Name']}")
+        print(f"df.loc[0:2, 'Name':'Age'] =\n{df.loc[0:2, 'Name':'Age']}")
+        # Note: loc includes BOTH endpoints (rows 0, 1, 2 and cols Name through Age)
+
+        # --- .iloc (integer position-based) ---
+        print(f"\n--- .iloc (integer position-based) ---")
+        print(f"df.iloc[1, 0]           = {df.iloc[1, 0]}")
+        print(f"df.iloc[0:2, 0:2]       =\n{df.iloc[0:2, 0:2]}")
+        # Note: iloc excludes the end (rows 0, 1 only)
+
+        # --- Conditional selection ---
+        print(f"\n--- Conditional selection ---")
+        eng_team = df.loc[df["Department"] == "Eng"]
+        print(f"Engineering team:\n{eng_team}")
+
+        # --- NaN Handling ---
+        print(f"\n--- NaN Handling ---")
+
+        # Strategy 1: Drop rows with any NaN
+        print(f"dropna():\n{df.dropna()}")
+
+        # Strategy 2: Forward fill (use previous value)
+        print(f"\nffill():\n{df.ffill()}")
+
+        # Strategy 3: Impute with column mean
+        df_imputed = df.copy()
+        df_imputed["Age"] = df_imputed["Age"].fillna(df_imputed["Age"].mean())
+        df_imputed["Salary"] = df_imputed["Salary"].fillna(df_imputed["Salary"].median())
+        print(f"\nAfter mean/median imputation:\n{df_imputed}")
+
+        # Strategy 4: Interpolate (linear by default)
+        df_interp = df.copy()
+        df_interp["Age"] = df_interp["Age"].interpolate()
+        print(f"\nAfter interpolation:\n{df_interp}")
+
+    pandas_indexing_nan()
+''')
+
+PHASE_6B_GROUPBY = emit(r'''
+    # ========================================================================
+    # 6.2  GroupBy Mechanics — Split-Apply-Combine
+    # ========================================================================
+
+    def pandas_groupby_demo():
+        """GroupBy: the core of data aggregation in Pandas.
+
+        The Split-Apply-Combine paradigm:
+        1. SPLIT:   Divide the DataFrame into groups based on a key.
+        2. APPLY:   Apply a function to each group independently.
+        3. COMBINE: Merge the results back into a DataFrame.
+
+        This is conceptually identical to SQL's GROUP BY clause.
+        """
+        rng = np.random.default_rng(42)
+
+        df = pd.DataFrame({
+            "Department": ["Eng", "Eng", "Sales", "Sales", "Eng", "Sales", "HR", "HR"],
+            "Name": ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Hank"],
+            "Salary": [90000, 85000, 70000, 75000, 95000, 72000, 65000, 68000],
+            "Experience": [5, 3, 7, 4, 8, 6, 2, 9],
+        })
+        print("DataFrame:")
+        print(df)
+
+        # --- Basic aggregation ---
+        print(f"\n--- Basic Aggregation ---")
+        print(f"Mean salary by department:\n{df.groupby('Department')['Salary'].mean()}")
+
+        # --- Multiple aggregations with .agg() ---
+        print(f"\n--- Multiple Aggregations ---")
+        agg_result = df.groupby("Department").agg(
+            avg_salary=("Salary", "mean"),
+            max_salary=("Salary", "max"),
+            headcount=("Name", "count"),
+            avg_experience=("Experience", "mean"),
+        )
+        print(agg_result)
+
+        # --- Custom aggregation function ---
+        print(f"\n--- Custom Aggregation ---")
+        def salary_range(series):
+            return series.max() - series.min()
+
+        print(f"Salary range by dept:\n{df.groupby('Department')['Salary'].agg(salary_range)}")
+
+        # --- Transform (returns same-shaped DataFrame) ---
+        print(f"\n--- Transform (z-score within groups) ---")
+        df["Salary_ZScore"] = df.groupby("Department")["Salary"].transform(
+            lambda x: (x - x.mean()) / x.std() if x.std() != 0 else 0
+        )
+        print(df[["Name", "Department", "Salary", "Salary_ZScore"]])
+
+        # --- Filter (keep groups that meet a condition) ---
+        print(f"\n--- Filter (departments with avg salary > 72000) ---")
+        filtered = df.groupby("Department").filter(lambda g: g["Salary"].mean() > 72000)
+        print(filtered[["Name", "Department", "Salary"]])
+
+    pandas_groupby_demo()
+''')
+
+PHASE_6C_RELATIONAL = emit(r'''
+    # ========================================================================
+    # 6.3  Relational Operations & Window Functions
+    # ========================================================================
+
+    def pandas_relational_windows():
+        """Merge, Join, Concat, and Window functions in Pandas.
+
+        Merge Types (equivalent to SQL JOINs)
+        -------------------------------------
+        * inner: Only rows with matching keys in BOTH DataFrames.
+        * left:  All rows from left, matching from right (NaN if no match).
+        * right: All rows from right, matching from left.
+        * outer: All rows from both (NaN where no match).
+
+        Window Functions
+        ----------------
+        * rolling(): Fixed-size sliding window.
+        * expanding(): Cumulative (window grows from the start).
+        * shift(): Lag/lead values.
+        """
+        # Create two DataFrames for relational operations
+        employees = pd.DataFrame({
+            "emp_id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+            "dept_id": [10, 20, 10, 30, 20],
+        })
+
+        departments = pd.DataFrame({
+            "dept_id": [10, 20, 40],
+            "dept_name": ["Engineering", "Sales", "Marketing"],
+        })
+
+        print("Employees:")
+        print(employees)
+        print(f"\nDepartments:")
+        print(departments)
+
+        # --- Merge (inner) ---
+        inner = pd.merge(employees, departments, on="dept_id", how="inner")
+        print(f"\n--- Inner Merge (only matching dept_ids) ---")
+        print(inner)
+
+        # --- Merge (left) ---
+        left = pd.merge(employees, departments, on="dept_id", how="left")
+        print(f"\n--- Left Merge (all employees, NaN for unknown dept) ---")
+        print(left)
+
+        # --- Merge (outer) ---
+        outer = pd.merge(employees, departments, on="dept_id", how="outer")
+        print(f"\n--- Outer Merge (all rows from both) ---")
+        print(outer)
+
+        # --- Concat (stacking) ---
+        df1 = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+        df2 = pd.DataFrame({"A": [5, 6], "B": [7, 8]})
+        stacked = pd.concat([df1, df2], ignore_index=True)
+        print(f"\n--- Concat (vertical stack) ---")
+        print(stacked)
+
+        # --- Window Functions ---
+        print(f"\n--- Window Functions ---")
+        ts = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=10, freq="D"),
+            "value": [10, 12, 8, 15, 11, 14, 9, 16, 13, 17],
+        })
+
+        # Rolling mean (3-day moving average)
+        ts["rolling_mean_3"] = ts["value"].rolling(window=3).mean()
+
+        # Expanding mean (cumulative average)
+        ts["expanding_mean"] = ts["value"].expanding().mean()
+
+        # Shift (lag by 1)
+        ts["lag_1"] = ts["value"].shift(1)
+
+        # Percentage change
+        ts["pct_change"] = ts["value"].pct_change()
+
+        print(ts.to_string(index=False))
+
+    pandas_relational_windows()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 7 — EDA & Visualization                                         ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_7_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 7: EXPLORATORY DATA ANALYSIS & VISUALIZATION                 ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    import matplotlib
+    matplotlib.use("Agg")  # Non-interactive backend for script execution
+    import matplotlib.pyplot as plt
+    import warnings
+    warnings.filterwarnings("ignore", category=UserWarning)
+''')
+
+PHASE_7A_MATPLOTLIB = emit(r'''
+    # ========================================================================
+    # 7.1  Matplotlib Object-Oriented API
+    # ========================================================================
+
+    def matplotlib_oo_demo():
+        """Matplotlib's Object-Oriented API — the professional approach.
+
+        Why OO API over pyplot?
+        - Explicit control over figures and axes.
+        - Better for multi-panel figures.
+        - Cleaner in scripts and applications (pyplot is for notebooks).
+
+        Hierarchy: Figure → Axes → Artists (lines, patches, text).
+        """
+        rng = np.random.default_rng(42)
+
+        # --- Single plot ---
+        fig, ax = plt.subplots(figsize=(8, 5))
+        x = np.linspace(0, 4 * np.pi, 200)
+        ax.plot(x, np.sin(x), label="sin(x)", linewidth=2, color="#2196F3")
+        ax.plot(x, np.cos(x), label="cos(x)", linewidth=2, color="#FF5722",
+                linestyle="--")
+        ax.set_title("Trigonometric Functions", fontsize=14, fontweight="bold")
+        ax.set_xlabel("x (radians)")
+        ax.set_ylabel("Amplitude")
+        ax.legend(loc="upper right")
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(0, 4 * np.pi)
+        fig.tight_layout()
+        fig.savefig("plot_01_trig.png", dpi=100)
+        plt.close(fig)
+        print("  Saved: plot_01_trig.png")
+
+        # --- Multi-panel figure (2×2) ---
+        fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+
+        # Panel 1: Line plot
+        data = rng.standard_normal(100).cumsum()
+        axes[0, 0].plot(data, color="#4CAF50")
+        axes[0, 0].set_title("Random Walk")
+        axes[0, 0].axhline(y=0, color="gray", linestyle="--", alpha=0.5)
+
+        # Panel 2: Histogram
+        samples = rng.standard_normal(1000)
+        axes[0, 1].hist(samples, bins=30, color="#9C27B0", alpha=0.7,
+                        edgecolor="white")
+        axes[0, 1].set_title("Normal Distribution")
+
+        # Panel 3: Scatter plot
+        x_scatter = rng.standard_normal(200)
+        y_scatter = 2 * x_scatter + rng.standard_normal(200) * 0.5
+        axes[1, 0].scatter(x_scatter, y_scatter, alpha=0.5, s=20, c="#FF9800")
+        axes[1, 0].set_title("Scatter Plot (y ≈ 2x + noise)")
+
+        # Panel 4: Bar chart
+        categories = ["A", "B", "C", "D", "E"]
+        values = rng.integers(10, 50, size=5)
+        colors = ["#E91E63", "#2196F3", "#4CAF50", "#FF9800", "#9C27B0"]
+        axes[1, 1].bar(categories, values, color=colors)
+        axes[1, 1].set_title("Bar Chart")
+
+        fig.suptitle("Matplotlib OO API — Multi-Panel Demo", fontsize=16,
+                     fontweight="bold")
+        fig.tight_layout()
+        fig.savefig("plot_02_multipanel.png", dpi=100)
+        plt.close(fig)
+        print("  Saved: plot_02_multipanel.png")
+
+    matplotlib_oo_demo()
+''')
+
+PHASE_7B_SEABORN = emit(r'''
+    # ========================================================================
+    # 7.2  Seaborn Statistical Plots
+    # ========================================================================
+
+    def seaborn_demo():
+        """Seaborn — high-level statistical visualization built on Matplotlib.
+
+        Seaborn excels at:
+        - Distribution plots (histograms, KDE, violin)
+        - Relationship plots (scatter with regression, pair plots)
+        - Categorical plots (box, swarm, strip)
+        - Heatmaps (correlation matrices)
+        """
+        try:
+            import seaborn as sns
+        except ImportError:
+            print("  [SKIP] Seaborn not installed. pip install seaborn")
+            return
+
+        rng = np.random.default_rng(42)
+
+        # Generate synthetic dataset
+        n = 200
+        df = pd.DataFrame({
+            "height": rng.normal(170, 10, n),
+            "weight": rng.normal(70, 15, n),
+            "age": rng.integers(20, 65, n),
+            "gender": rng.choice(["Male", "Female"], n),
+        })
+        # Add correlated BMI
+        df["bmi"] = df["weight"] / (df["height"] / 100) ** 2
+
+        # --- Pairplot ---
+        pair_fig = sns.pairplot(df, hue="gender", corner=True,
+                                palette="husl", plot_kws={"alpha": 0.6})
+        pair_fig.fig.suptitle("Pairplot — Bivariate Relationships", y=1.02)
+        pair_fig.savefig("plot_03_pairplot.png", dpi=80)
+        plt.close("all")
+        print("  Saved: plot_03_pairplot.png")
+
+        # --- Correlation Heatmap ---
+        fig, ax = plt.subplots(figsize=(6, 5))
+        numeric_cols = df.select_dtypes(include=[np.number])
+        corr = numeric_cols.corr()
+        sns.heatmap(corr, annot=True, cmap="coolwarm", center=0, ax=ax,
+                    fmt=".2f", linewidths=0.5)
+        ax.set_title("Correlation Heatmap")
+        fig.tight_layout()
+        fig.savefig("plot_04_heatmap.png", dpi=100)
+        plt.close(fig)
+        print("  Saved: plot_04_heatmap.png")
+
+        # --- Distribution plot ---
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        sns.histplot(df, x="bmi", hue="gender", kde=True, ax=axes[0],
+                     palette="Set2")
+        axes[0].set_title("BMI Distribution by Gender")
+        sns.boxplot(data=df, x="gender", y="bmi", palette="pastel", ax=axes[1])
+        axes[1].set_title("BMI Boxplot by Gender")
+        fig.tight_layout()
+        fig.savefig("plot_05_distributions.png", dpi=100)
+        plt.close(fig)
+        print("  Saved: plot_05_distributions.png")
+
+    seaborn_demo()
+''')
+
+PHASE_7C_OUTLIERS = emit(r'''
+    # ========================================================================
+    # 7.3  Outlier Detection — IQR Method & Z-Scores
+    # ========================================================================
+
+    def outlier_detection_demo():
+        """Statistical methods for detecting outliers.
+
+        Method 1: IQR (Interquartile Range)
+        ------------------------------------
+        Q1 = 25th percentile, Q3 = 75th percentile
+        IQR = Q3 - Q1
+        Lower bound = Q1 - 1.5 × IQR
+        Upper bound = Q3 + 1.5 × IQR
+        Points outside [lower, upper] are outliers.
+
+        Why 1.5? It's a convention by John Tukey.  For normal distributions,
+        1.5×IQR captures ~99.3% of data — anything beyond is unusual.
+
+        Method 2: Z-Score
+        -----------------
+        z = (x - μ) / σ
+        Points with |z| > 3 are typically considered outliers.
+        Assumes approximately normal distribution.
+        """
+        rng = np.random.default_rng(42)
+
+        # Create data with intentional outliers
+        normal_data = rng.normal(50, 10, 100)
+        outliers = np.array([150, -30, 120, -20])
+        data = np.concatenate([normal_data, outliers])
+        rng.shuffle(data)
+
+        print("Outlier Detection Demo")
+        print(f"  Data size: {len(data)}, known outliers injected: {len(outliers)}")
+
+        # --- Method 1: IQR ---
+        Q1 = np.percentile(data, 25)
+        Q3 = np.percentile(data, 75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        iqr_outliers = data[(data < lower_bound) | (data > upper_bound)]
+        print(f"\n  IQR Method:")
+        print(f"    Q1={Q1:.2f}, Q3={Q3:.2f}, IQR={IQR:.2f}")
+        print(f"    Bounds: [{lower_bound:.2f}, {upper_bound:.2f}]")
+        print(f"    Outliers found: {len(iqr_outliers)} → {iqr_outliers}")
+
+        # --- Method 2: Z-Score ---
+        mean = np.mean(data)
+        std = np.std(data)
+        z_scores = (data - mean) / std
+        z_outliers = data[np.abs(z_scores) > 3]
+        print(f"\n  Z-Score Method (|z| > 3):")
+        print(f"    Mean={mean:.2f}, Std={std:.2f}")
+        print(f"    Outliers found: {len(z_outliers)} → {z_outliers}")
+
+    outlier_detection_demo()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 8 — Scikit-Learn ML                                             ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+PHASE_8_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  PHASE 8: SCIKIT-LEARN — SUPERVISED & UNSUPERVISED ML               ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    from sklearn.datasets import make_classification, make_regression
+    from sklearn.model_selection import train_test_split, cross_val_score
+''')
+
+PHASE_8A_PREPROCESSING = emit(r'''
+    # ========================================================================
+    # 8.1  Preprocessing — Scaling, Encoding, Imbalanced Data
+    # ========================================================================
+
+    def preprocessing_demo():
+        """Data preprocessing techniques critical for ML pipelines.
+
+        StandardScaler: z = (x - μ) / σ
+          Makes each feature have mean=0 and std=1.
+          Essential for algorithms sensitive to feature magnitudes
+          (SVM, KNN, PCA, gradient descent-based models).
+
+        OneHotEncoding: Converts categorical variables to binary columns.
+          Category "Red"   → [1, 0, 0]
+          Category "Green" → [0, 1, 0]
+          Category "Blue"  → [0, 0, 1]
+
+        SMOTE (Synthetic Minority Oversampling Technique) Logic:
+          Creates synthetic samples for the minority class by:
+          1. For each minority sample, find its k nearest neighbors.
+          2. Randomly select one neighbor.
+          3. Create a new sample along the line connecting them:
+             new_sample = sample + rand(0,1) × (neighbor - sample)
+        """
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+        rng = np.random.default_rng(42)
+
+        # --- StandardScaler ---
+        print("--- StandardScaler ---")
+        data = rng.normal(loc=[100, 0.5], scale=[50, 0.1], size=(6, 2))
+        print(f"Before scaling:\n{data}")
+
+        scaler = StandardScaler()
+        scaled = scaler.fit_transform(data)
+        print(f"After scaling:\n{scaled}")
+        print(f"  Mean: {scaled.mean(axis=0)}")  # ≈ [0, 0]
+        print(f"  Std:  {scaled.std(axis=0)}")    # ≈ [1, 1]
+
+        # --- OneHotEncoding ---
+        print(f"\n--- OneHotEncoding ---")
+        categories = np.array([["Red"], ["Green"], ["Blue"], ["Red"], ["Blue"]])
+        encoder = OneHotEncoder(sparse_output=False)
+        one_hot = encoder.fit_transform(categories)
+        print(f"Categories: {categories.ravel()}")
+        print(f"One-hot encoded:\n{one_hot}")
+        print(f"Feature names: {encoder.get_feature_names_out()}")
+
+        # --- SMOTE Logic (simplified implementation) ---
+        print(f"\n--- SMOTE Logic (Simplified) ---")
+        # Simulate an imbalanced dataset: 100 majority, 10 minority
+        X_majority = rng.normal(loc=[0, 0], scale=1, size=(100, 2))
+        X_minority = rng.normal(loc=[3, 3], scale=0.5, size=(10, 2))
+
+        def simple_smote(X_minority, n_synthetic, k=5):
+            """Simplified SMOTE: generate synthetic samples for the minority class.
+
+            Algorithm:
+            1. For each minority sample, find k nearest neighbors (within minority).
+            2. Pick a random neighbor.
+            3. Interpolate: new = sample + rand() * (neighbor - sample).
+            """
+            from sklearn.neighbors import NearestNeighbors
+            nn = NearestNeighbors(n_neighbors=k + 1)  # +1 because sample is its own neighbor
+            nn.fit(X_minority)
+            synthetic = []
+            for _ in range(n_synthetic):
+                idx = rng.integers(0, len(X_minority))
+                sample = X_minority[idx]
+                neighbors = nn.kneighbors([sample], return_distance=False)[0][1:]  # Exclude self
+                neighbor_idx = rng.choice(neighbors)
+                neighbor = X_minority[neighbor_idx]
+                # Interpolate between sample and neighbor
+                lam = rng.random()
+                new_sample = sample + lam * (neighbor - sample)
+                synthetic.append(new_sample)
+            return np.array(synthetic)
+
+        synthetic = simple_smote(X_minority, n_synthetic=90, k=5)
+        print(f"  Original minority: {X_minority.shape[0]} samples")
+        print(f"  Synthetic samples: {synthetic.shape[0]}")
+        print(f"  Total minority after SMOTE: {X_minority.shape[0] + synthetic.shape[0]}")
+
+    preprocessing_demo()
+''')
+
+PHASE_8B_REGRESSION = emit(r'''
+    # ========================================================================
+    # 8.2  Regression — Ridge, Lasso, ElasticNet
+    # ========================================================================
+
+    def regression_demo():
+        """Regularized linear regression models.
+
+        Ordinary Least Squares (OLS):
+          Minimize: ||y - Xw||²
+          Problem: Overfits when features >> samples or features are correlated.
+
+        Ridge Regression (L2 regularization):
+          Minimize: ||y - Xw||² + α × ||w||²
+          Effect: Shrinks ALL coefficients toward zero (but never exactly zero).
+          Use when: You believe all features are somewhat relevant.
+
+        Lasso Regression (L1 regularization):
+          Minimize: ||y - Xw||² + α × ||w||₁
+          Effect: Drives some coefficients to EXACTLY zero → feature selection.
+          Use when: You want sparse models (automatic feature selection).
+
+        ElasticNet (L1 + L2 combined):
+          Minimize: ||y - Xw||² + α × (ρ × ||w||₁ + (1-ρ)/2 × ||w||²)
+          where ρ (l1_ratio) controls the mix of L1 and L2.
+          Use when: You want some feature selection but also grouped selection
+          for correlated features.
+        """
+        from sklearn.linear_model import Ridge, Lasso, ElasticNet
+        from sklearn.metrics import mean_squared_error, r2_score
+
+        # Generate synthetic regression data
+        X, y = make_regression(n_samples=200, n_features=20, n_informative=5,
+                               noise=10, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+        models = {
+            "Ridge (L2)":       Ridge(alpha=1.0),
+            "Lasso (L1)":       Lasso(alpha=1.0),
+            "ElasticNet (L1+L2)": ElasticNet(alpha=1.0, l1_ratio=0.5),
+        }
+
+        print("--- Regression Model Comparison ---")
+        for name, model in models.items():
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            mse = mean_squared_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            n_nonzero = np.sum(np.abs(model.coef_) > 1e-6)
+            print(f"  {name:25s}  MSE={mse:8.2f}  R²={r2:.4f}  "
+                  f"Non-zero coeffs: {n_nonzero}/20")
+
+        # Show Lasso's feature selection in action
+        lasso = Lasso(alpha=1.0).fit(X_train, y_train)
+        print(f"\nLasso coefficients (showing sparsity):")
+        for i, coef in enumerate(lasso.coef_):
+            marker = "★" if abs(coef) > 1e-6 else " "
+            print(f"  {marker} Feature {i:2d}: {coef:8.4f}")
+
+    regression_demo()
+''')
+
+PHASE_8C_CLASSIFICATION = emit(r'''
+    # ========================================================================
+    # 8.3  Classification — Random Forest, Gradient Boosting, SVM
+    # ========================================================================
+
+    def classification_demo():
+        """Classification with ensemble methods and SVM.
+
+        Random Forest:
+          - An ensemble of many Decision Trees.
+          - Each tree is trained on a random subset of data (bagging) AND
+            a random subset of features at each split.
+          - Final prediction: majority vote (classification) or average (regression).
+          - Reduces overfitting through averaging.
+
+        Gradient Boosting:
+          - Sequentially trains weak learners (shallow trees).
+          - Each new tree corrects the ERRORS of the previous ensemble.
+          - Uses gradient descent on the loss function.
+          - More prone to overfitting but often more accurate.
+
+        Support Vector Machine (SVM):
+          - Finds the hyperplane that maximizes the MARGIN between classes.
+          - The kernel trick maps data to higher dimensions where it's
+            linearly separable (RBF kernel is most common).
+          - C parameter controls regularization (smaller C → wider margin).
+        """
+        from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+        from sklearn.svm import SVC
+        from sklearn.metrics import classification_report
+
+        # Generate synthetic classification data
+        X, y = make_classification(n_samples=500, n_features=10,
+                                   n_informative=5, n_redundant=2,
+                                   n_classes=2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+        models = {
+            "Random Forest": RandomForestClassifier(
+                n_estimators=100, max_depth=5, random_state=42
+            ),
+            "Gradient Boosting": GradientBoostingClassifier(
+                n_estimators=100, max_depth=3, learning_rate=0.1, random_state=42
+            ),
+            "SVM (RBF kernel)": SVC(kernel="rbf", C=1.0, gamma="scale"),
+        }
+
+        print("--- Classification Model Comparison ---")
+        for name, model in models.items():
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            accuracy = (y_pred == y_test).mean()
+            print(f"\n  {name}  (Accuracy: {accuracy:.4f})")
+            print(classification_report(y_test, y_pred, target_names=["Class 0", "Class 1"]))
+
+        # Feature importances (Random Forest)
+        rf = models["Random Forest"]
+        print("  Random Forest Feature Importances:")
+        for i, imp in enumerate(rf.feature_importances_):
+            bar = "█" * int(imp * 50)
+            print(f"    Feature {i:2d}: {imp:.4f} {bar}")
+
+    classification_demo()
+''')
+
+PHASE_8D_CLUSTERING = emit(r'''
+    # ========================================================================
+    # 8.4  Clustering & Dimensionality Reduction — K-Means, PCA
+    # ========================================================================
+
+    def clustering_pca_demo():
+        """Unsupervised learning: finding structure in unlabeled data.
+
+        K-Means Clustering:
+          1. Randomly initialize K centroids.
+          2. Assign each point to the nearest centroid (E-step).
+          3. Recompute centroids as the mean of assigned points (M-step).
+          4. Repeat until convergence.
+          Time: O(n × K × d × iterations).
+
+        PCA (Principal Component Analysis):
+          Finds directions of maximum variance in the data.
+          Steps:
+            1. Center the data (subtract mean).
+            2. Compute covariance matrix.
+            3. Find eigenvectors and eigenvalues.
+            4. Sort by eigenvalue (largest = most variance explained).
+            5. Project data onto top-k eigenvectors.
+
+          Eigenvectors: Directions that are only SCALED (not rotated) by a
+          linear transformation.  In PCA, they represent the axes of maximum
+          variance.
+        """
+        from sklearn.cluster import KMeans
+        from sklearn.decomposition import PCA
+        from sklearn.datasets import make_blobs
+
+        # Generate 3 clusters of 2D data
+        X, y_true = make_blobs(n_samples=300, centers=3, cluster_std=1.0,
+                               random_state=42)
+
+        # --- K-Means ---
+        kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+        y_pred = kmeans.fit_predict(X)
+        print("--- K-Means Clustering ---")
+        print(f"  Centroids:\n{kmeans.cluster_centers_}")
+        print(f"  Inertia (within-cluster sum of squares): {kmeans.inertia_:.2f}")
+
+        # Elbow method: run K-Means for different K values
+        print(f"\n  Elbow Method (Inertia vs K):")
+        for k in range(1, 7):
+            km = KMeans(n_clusters=k, random_state=42, n_init=10)
+            km.fit(X)
+            print(f"    K={k}: Inertia={km.inertia_:8.2f}")
+
+        # --- PCA ---
+        print(f"\n--- PCA (Dimensionality Reduction) ---")
+        # Create higher-dimensional data for PCA
+        X_high, _ = make_classification(n_samples=200, n_features=10,
+                                        n_informative=3, random_state=42)
+
+        pca = PCA(n_components=3)
+        X_reduced = pca.fit_transform(X_high)
+
+        print(f"  Original shape:  {X_high.shape}")
+        print(f"  Reduced shape:   {X_reduced.shape}")
+        print(f"  Explained variance ratio: {pca.explained_variance_ratio_}")
+        print(f"  Cumulative variance: {np.cumsum(pca.explained_variance_ratio_)}")
+
+        # Full PCA to show variance explained by each component
+        pca_full = PCA().fit(X_high)
+        cumvar = np.cumsum(pca_full.explained_variance_ratio_)
+        print(f"\n  Variance explained by each component (full PCA):")
+        for i, (var, cum) in enumerate(zip(pca_full.explained_variance_ratio_, cumvar)):
+            bar = "█" * int(var * 50)
+            print(f"    PC{i}: {var:.4f} (cumulative: {cum:.4f}) {bar}")
+
+    clustering_pca_demo()
+''')
+
+PHASE_8E_PIPELINE = emit(r'''
+    # ========================================================================
+    # 8.5  CRITICAL ML ENGINEERING: Pipeline & ColumnTransformer
+    # ========================================================================
+
+    def pipeline_demo():
+        """CRITICAL: Using Pipeline and ColumnTransformer to prevent data leakage.
+
+        DATA LEAKAGE: When information from the test set influences the
+        training process.  This is the #1 source of overly optimistic
+        ML results in production.
+
+        Common sources of leakage:
+        1. Fitting a scaler on ALL data before splitting → test set
+           statistics leak into training.
+        2. Feature selection using the entire dataset.
+        3. Imputing missing values using global statistics.
+
+        THE SOLUTION: Pipeline + ColumnTransformer
+        - All preprocessing steps are bundled INTO the pipeline.
+        - During cross-validation, fitting happens ONLY on the training fold.
+        - The test fold is transformed using parameters learned from training.
+
+        ColumnTransformer:
+        - Apply DIFFERENT preprocessing to different column types.
+        - Numeric columns → impute mean + scale.
+        - Categorical columns → impute mode + one-hot encode.
+        """
+        from sklearn.pipeline import Pipeline
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        from sklearn.impute import SimpleImputer
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.model_selection import cross_val_score
+
+        # Create synthetic data with mixed types and missing values
+        rng = np.random.default_rng(42)
+        n = 300
+        df = pd.DataFrame({
+            "age": rng.normal(40, 15, n),
+            "income": rng.normal(50000, 20000, n),
+            "education": rng.choice(["HS", "BS", "MS", "PhD"], n),
+            "city": rng.choice(["NYC", "LA", "CHI", "HOU"], n),
+        })
+        # Inject some NaN
+        for col in ["age", "income"]:
+            mask = rng.random(n) < 0.1
+            df.loc[mask, col] = np.nan
+
+        y = (df["income"].fillna(50000) > 50000).astype(int)
+
+        print("--- ML Pipeline with ColumnTransformer ---")
+        print(f"DataFrame shape: {df.shape}")
+        print(f"Missing values:\n{df.isna().sum()}")
+
+        # Define column groups
+        numeric_features = ["age", "income"]
+        categorical_features = ["education", "city"]
+
+        # Define preprocessing for each type
+        numeric_transformer = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="mean")),    # Fill NaN with mean
+            ("scaler", StandardScaler()),                    # Scale to z-scores
+        ])
+
+        categorical_transformer = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),  # Fill with mode
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),     # One-hot encode
+        ])
+
+        # Combine with ColumnTransformer
+        preprocessor = ColumnTransformer(transformers=[
+            ("num", numeric_transformer, numeric_features),
+            ("cat", categorical_transformer, categorical_features),
+        ])
+
+        # Full pipeline: preprocessing + classifier
+        pipeline = Pipeline(steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", RandomForestClassifier(n_estimators=100, random_state=42)),
+        ])
+
+        # --- CORRECT: Cross-validation WITH Pipeline ---
+        # The pipeline ensures that fitting (mean, std, categories) happens
+        # ONLY on the training fold.  The test fold is transformed using
+        # those training-fold parameters.
+        scores_correct = cross_val_score(pipeline, df, y, cv=5, scoring="accuracy")
+        print(f"\n✅ CORRECT (Pipeline + CV):")
+        print(f"  Cross-val accuracy: {scores_correct.mean():.4f} ± {scores_correct.std():.4f}")
+        print(f"  Individual folds:   {scores_correct}")
+
+        # --- WRONG: Preprocessing BEFORE cross-validation (LEAKAGE!) ---
+        print(f"\n⚠️  WRONG approach (for educational purposes — DO NOT do this):")
+        print(f"  If you fit StandardScaler on ALL data before splitting,")
+        print(f"  the test fold's mean/std has leaked into the training.")
+        print(f"  This gives overly optimistic results that won't generalize.")
+
+        # Show the pipeline steps
+        print(f"\nPipeline steps:")
+        for name, step in pipeline.named_steps.items():
+            print(f"  {name}: {type(step).__name__}")
+
+    pipeline_demo()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  BUG CHALLENGES (Intentional Bugs for Students)                         ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+BUG_CHALLENGES_HEADER = emit(r'''
+    # ╔══════════════════════════════════════════════════════════════════════╗
+    # ║  DEBUG CHALLENGES — INTENTIONAL BUGS FOR STUDENTS TO FIX            ║
+    # ╚══════════════════════════════════════════════════════════════════════╝
+    # The following sections contain INTENTIONAL bugs.  Each bug is a common
+    # Python pitfall.  Your task: identify the bug, explain WHY it's wrong,
+    # and fix it.  Solutions are provided in comments below each challenge.
+''')
+
+BUG_CHALLENGES = emit(r'''
+    # ========================================================================
+    # BUG CHALLENGE 1: Mutable Default Argument
+    # ========================================================================
+
+    def bug_challenge_1():
+        """🐛 BUG CHALLENGE: Mutable Default Argument.
+
+        The function below has a subtle bug that causes unexpected behavior
+        when called multiple times.  Can you spot it?
+        """
+        # --- BUGGY CODE ---
+        def add_item_buggy(item, shopping_list=[]):
+            """Add an item to a shopping list.
+
+            BUG: The default list `[]` is created ONCE when the function is
+            defined, not each time it's called.  All calls share the SAME list!
+            """
+            shopping_list.append(item)
+            return shopping_list
+
+        print("BUG CHALLENGE 1: Mutable Default Argument")
+        result1 = add_item_buggy("apples")
+        result2 = add_item_buggy("bananas")    # Expected ["bananas"], got ["apples", "bananas"]!
+        print(f"  Buggy result1: {result1}")
+        print(f"  Buggy result2: {result2}")
+        print(f"  result1 is result2: {result1 is result2}")  # True! Same object!
+
+        # --- FIXED CODE ---
+        def add_item_fixed(item, shopping_list=None):
+            """FIX: Use None as default, create a new list inside the function."""
+            if shopping_list is None:
+                shopping_list = []
+            shopping_list.append(item)
+            return shopping_list
+
+        result3 = add_item_fixed("apples")
+        result4 = add_item_fixed("bananas")
+        print(f"  Fixed result3: {result3}")    # ["apples"]
+        print(f"  Fixed result4: {result4}")    # ["bananas"]
+
+    bug_challenge_1()
+
+
+    # ========================================================================
+    # BUG CHALLENGE 2: Late Binding Closures
+    # ========================================================================
+
+    def bug_challenge_2():
+        """🐛 BUG CHALLENGE: Late Binding in Closures.
+
+        The closures below all print the SAME value instead of 0, 1, 2, 3.
+        """
+        # --- BUGGY CODE ---
+        print("\nBUG CHALLENGE 2: Late Binding Closures")
+        buggy_funcs = []
+        for i in range(4):
+            buggy_funcs.append(lambda: i)  # All lambdas capture the VARIABLE `i`, not its value
+
+        print(f"  Buggy: {[f() for f in buggy_funcs]}")  # [3, 3, 3, 3] — all see i=3!
+
+        # WHY: Closures capture VARIABLES, not VALUES.  By the time the lambdas
+        # are called, the loop has finished and `i` equals 3.
+
+        # --- FIXED CODE ---
+        fixed_funcs = []
+        for i in range(4):
+            fixed_funcs.append(lambda i=i: i)  # Default argument captures the VALUE at creation
+
+        print(f"  Fixed: {[f() for f in fixed_funcs]}")  # [0, 1, 2, 3]
+
+    bug_challenge_2()
+
+
+    # ========================================================================
+    # BUG CHALLENGE 3: Integer Division Pitfall
+    # ========================================================================
+
+    def bug_challenge_3():
+        """🐛 BUG CHALLENGE: Integer Division.
+
+        This function computes the average but may return an unexpected result.
+        """
+        # --- BUGGY CODE ---
+        print("\nBUG CHALLENGE 3: Integer Division")
+
+        def average_buggy(numbers):
+            """Compute the average.
+            BUG: In Python 2, `/` between integers performed FLOOR division.
+            In Python 3, `/` always returns float (so this actually works).
+            But using `//` would be a bug:
+            """
+            return sum(numbers) // len(numbers)  # Floor division truncates!
+
+        result = average_buggy([1, 2, 3, 4])
+        print(f"  Buggy average of [1,2,3,4]: {result}")    # 2 (should be 2.5)
+
+        # --- FIXED CODE ---
+        def average_fixed(numbers):
+            return sum(numbers) / len(numbers)  # True division
+
+        result_fixed = average_fixed([1, 2, 3, 4])
+        print(f"  Fixed average of [1,2,3,4]: {result_fixed}")  # 2.5
+
+    bug_challenge_3()
+
+
+    # ========================================================================
+    # BUG CHALLENGE 4: Data Leakage in ML Pipeline
+    # ========================================================================
+
+    def bug_challenge_4():
+        """🐛 BUG CHALLENGE: Data Leakage in Machine Learning.
+
+        This ML code looks correct but has a critical data leakage bug
+        that will produce overly optimistic cross-validation scores.
+        """
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.model_selection import cross_val_score
+        from sklearn.pipeline import Pipeline
+
+        X, y = make_classification(n_samples=200, n_features=20,
+                                   n_informative=2, random_state=42)
+
+        print("\nBUG CHALLENGE 4: Data Leakage in ML")
+
+        # --- BUGGY CODE ---
+        # Fitting the scaler on ALL data before cross-validation!
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)  # BUG: Learns mean/std from ENTIRE dataset
+        model = LogisticRegression(max_iter=1000)
+        scores_leaky = cross_val_score(model, X_scaled, y, cv=5)
+        print(f"  Leaky CV accuracy:  {scores_leaky.mean():.4f}")
+
+        # --- FIXED CODE ---
+        # Use a Pipeline so scaling happens INSIDE cross-validation
+        pipeline = Pipeline([
+            ("scaler", StandardScaler()),
+            ("model", LogisticRegression(max_iter=1000)),
+        ])
+        scores_correct = cross_val_score(pipeline, X, y, cv=5)
+        print(f"  Correct CV accuracy: {scores_correct.mean():.4f}")
+        print(f"  (The leaky score may look similar here because the dataset")
+        print(f"   is simple, but on real data the difference can be dramatic.)")
+
+    bug_challenge_4()
+
+
+    # ========================================================================
+    # BUG CHALLENGE 5: Infinite Recursion
+    # ========================================================================
+
+    def bug_challenge_5():
+        """🐛 BUG CHALLENGE: Infinite Recursion.
+
+        The recursive function below will cause a RecursionError.
+        Can you spot the missing base case?
+        """
+        import sys
+        print("\nBUG CHALLENGE 5: Infinite Recursion")
+
+        # --- BUGGY CODE ---
+        def factorial_buggy(n):
+            """BUG: Missing base case for n <= 0.
+            If n starts negative, this recurses forever.
+            Even for positive n, calling factorial_buggy(0) would try
+            factorial_buggy(-1), factorial_buggy(-2), ...
+            """
+            # COMMENTED OUT to avoid crashing:
+            # return n * factorial_buggy(n - 1)  # No base case!
+            print("  [Buggy version commented out to prevent crash]")
+
+        factorial_buggy(5)
+
+        # --- FIXED CODE ---
+        def factorial_fixed(n):
+            """FIXED: Added base case and input validation."""
+            if n < 0:
+                raise ValueError("Factorial undefined for negative numbers")
+            if n <= 1:        # Base case!
+                return 1
+            return n * factorial_fixed(n - 1)
+
+        print(f"  Fixed: 5! = {factorial_fixed(5)}")
+        print(f"  Fixed: 0! = {factorial_fixed(0)}")
+
+    bug_challenge_5()
+''')
+
+
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  FINAL ASSEMBLY — Write the encyclopedia file                          ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+def main():
+    """Assemble all phases and write the encyclopedia file."""
+    global LINE_COUNTER
+
+    HEADER = emit(r'''
+        #!/usr/bin/env python3
+        """
+        ╔══════════════════════════════════════════════════════════════════════════╗
+        ║                                                                        ║
+        ║          PYTHON CS & DATA SCIENCE ENCYCLOPEDIA                         ║
+        ║          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                       ║
+        ║                                                                        ║
+        ║  An exhaustive, fully-runnable reference spanning:                      ║
+        ║    Phase 1: Python Core, Internals & OOP                               ║
+        ║    Phase 2: Data Structures (Pure CS)                                  ║
+        ║    Phase 3: Algorithmic Mastery & Dynamic Programming                  ║
+        ║    Phase 4: Software Architecture & Design Patterns (GoF)              ║
+        ║    Phase 5: NumPy Mastery (Linear Algebra & Vectorization)             ║
+        ║    Phase 6: Pandas Mastery (Data Wrangling)                            ║
+        ║    Phase 7: Exploratory Data Analysis & Visualization                  ║
+        ║    Phase 8: Scikit-Learn Supervised & Unsupervised ML                  ║
+        ║    Bonus:   Debug Challenges (Intentional Bugs)                        ║
+        ║                                                                        ║
+        ║  Self-contained: uses numpy.random & sklearn.datasets for all data.    ║
+        ║  Every section includes PEP-257 docstrings, Big-O analysis, and        ║
+        ║  inline comments explaining "the why".                                 ║
+        ║                                                                        ║
+        ║  Generated by: build_cs_ds_encyclopedia.py                             ║
+        ╚══════════════════════════════════════════════════════════════════════════╝
+        """
+        from __future__ import annotations
+    ''')
+
+    FOOTER = emit(r'''
+        # ╔══════════════════════════════════════════════════════════════════════╗
+        # ║  END OF ENCYCLOPEDIA                                                ║
+        # ╚══════════════════════════════════════════════════════════════════════╝
+
+        if __name__ == "__main__":
+            print("\n" + "=" * 60)
+            print("  PYTHON CS & DATA SCIENCE ENCYCLOPEDIA — COMPLETE")
+            print("=" * 60)
+            print("  All phases executed successfully.")
+            print("  Check the current directory for any generated plots.")
+            print("=" * 60)
+    ''')
+
+    # Collect all sections in order
+    sections = [
+        HEADER,
+        # Phase 1
+        PHASE_1_HEADER, PHASE_1A_CORE_TYPES, PHASE_1B_CONTROL_FLOW,
+        PHASE_1C_OOP, PHASE_1D_DECORATORS_CONTEXT,
+        # Phase 2
+        PHASE_2_HEADER, PHASE_2A_LINKED_LISTS, PHASE_2B_TREES,
+        PHASE_2C_GRAPHS, PHASE_2D_HEAPS, PHASE_2E_HASHMAP,
+        # Phase 3
+        PHASE_3_HEADER, PHASE_3A_SORTING, PHASE_3B_SEARCHING,
+        PHASE_3C_PATHFINDING, PHASE_3D_DP,
+        # Phase 4
+        PHASE_4_HEADER, PHASE_4A_CREATIONAL, PHASE_4B_STRUCTURAL,
+        PHASE_4C_BEHAVIORAL,
+        # Phase 5
+        PHASE_5_HEADER, PHASE_5A_ARRAYS, PHASE_5B_INDEXING,
+        PHASE_5C_VECTORIZATION,
+        # Phase 6
+        PHASE_6_HEADER, PHASE_6A_INDEXING, PHASE_6B_GROUPBY,
+        PHASE_6C_RELATIONAL,
+        # Phase 7
+        PHASE_7_HEADER, PHASE_7A_MATPLOTLIB, PHASE_7B_SEABORN,
+        PHASE_7C_OUTLIERS,
+        # Phase 8
+        PHASE_8_HEADER, PHASE_8A_PREPROCESSING, PHASE_8B_REGRESSION,
+        PHASE_8C_CLASSIFICATION, PHASE_8D_CLUSTERING, PHASE_8E_PIPELINE,
+        # Bug Challenges
+        BUG_CHALLENGES_HEADER, BUG_CHALLENGES,
+        # Footer
+        FOOTER,
+    ]
+
+    full_content = "\n".join(sections)
+
+    # Write the file
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               OUTPUT_FILENAME)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(full_content)
+
+    actual_lines = full_content.count("\n") + 1
+
+    print("=" * 70)
+    print(f"  ✅  Successfully generated: {OUTPUT_FILENAME}")
+    print(f"  📊  Total lines written:    {actual_lines:,}")
+    print(f"  📁  Location:               {output_path}")
+    print("=" * 70)
+    print()
+    print("  Curriculum Coverage:")
+    print("  ─────────────────────────────────────────────────")
+    print("  Phase 1: Python Core, Internals & OOP        ✅")
+    print("  Phase 2: Data Structures (Pure CS)            ✅")
+    print("  Phase 3: Algorithms & Dynamic Programming     ✅")
+    print("  Phase 4: Design Patterns (GoF)                ✅")
+    print("  Phase 5: NumPy Mastery                        ✅")
+    print("  Phase 6: Pandas Mastery                       ✅")
+    print("  Phase 7: EDA & Visualization                  ✅")
+    print("  Phase 8: Scikit-Learn ML                      ✅")
+    print("  Bonus:   Debug Challenges (5 bugs)            ✅")
+    print("  ─────────────────────────────────────────────────")
+    print()
+    print(f"  Run the encyclopedia:")
+    print(f"    python {OUTPUT_FILENAME}")
+
+
+if __name__ == "__main__":
+    main()
